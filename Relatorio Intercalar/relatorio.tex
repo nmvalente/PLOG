@@ -7,11 +7,13 @@
 \usepackage{indentfirst}
 \usepackage{graphicx}
 \usepackage{verbatim}
+\usepackage[numbers,square, comma, sort&compress]{natbib}
+\usepackage[top=4cm, bottom=3cm, left=3cm, right=3.5cm]{geometry}
 
 \begin{document}
 
-\setlength{\textwidth}{16cm}
-\setlength{\textheight}{22cm}
+%\setlength{\textwidth}{16cm}
+%\setlength{\textheight}{22cm}
 
 \title{\Huge\textbf{Dominup em Prolog}\linebreak\linebreak\linebreak
 \Large\textbf{Relatório Intercalar}\linebreak\linebreak
@@ -103,11 +105,16 @@ Existem dois tipos de colocação de peças no Dominup:
 \end{center}
 \end{figure}
 
-Tal como no Dominó, as regras são relativamente simples. Começa-se por distribuir as peças aleatoriamente e de forma equilibrada pelos jogadores, mantendo a face voltada para baixo. O jogador com o duplo 7 inicia o jogo, colocando essa peça no centro da superfície de jogo e determinando a ordem dos restantes jogadores, que é dada pelo sentido contrário ao ponteiro dos relógios. Começando no segundo, cada jogador, na sua vez, realiza ambos os passos seguintes:
+Tal como no Dominó, as regras são relativamente simples. Começa-se por distribuir as peças aleatoriamente e de forma equilibrada pelos jogadores, mantendo a face voltada para baixo. 
+
+O jogador com o duplo 7 inicia o jogo, colocando essa peça no centro da superfície de jogo e determinando a ordem dos restantes jogadores, que é dada pelo sentido contrário ao ponteiro dos relógios. 
+
+Começando no segundo, cada jogador, na sua vez, realiza ambos os passos seguintes:
 \begin{enumerate}
-	\item Enquanto que for possível coloca peças a subir, podendo escolher a ordem em que o faz;
+	\item Enquanto for possível, coloca peças a subir, podendo escolher a ordem em que o faz;
 	\item Se ainda tiver alguma peça, coloca-a a expandir.
 \end{enumerate}
+
 Se, no final da sua vez, o jogador ficar sem peças, é declarado vencedor e o jogo termina. Alternativamente, os restantes jogadores podem continuar, de forma a determinar o segundo, terceiro e quarto lugares.
 
 Na figura~\ref{example} pode ser observado um possível jogo de Dominup a decorrer.
@@ -129,7 +136,7 @@ Na figura~\ref{example} pode ser observado um possível jogo de Dominup a decorr
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Representação do Estado do Jogo}
 
-%Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
+Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
