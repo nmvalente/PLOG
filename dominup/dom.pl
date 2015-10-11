@@ -39,14 +39,14 @@ startPlayer(1).
 
 %playerTurn().
 
-set1([01,03,04,06,11,12,14,15,17,22,23,26,33,37,45,56,67,77]).
-set2([00,02,05,07,13,16,24,25,27,34,35,36,44,46,47,55,57,66]).
+set1([piece(0, 1), piece(0, 3), piece(0, 4), piece(0, 6), piece(1, 1), piece(1, 2), piece(1, 4), piece(1, 5), piece(1, 7), piece(2, 2), piece(2, 3), piece(2, 6), piece(3, 3), piece(3, 7), piece(4, 5), piece(5, 6), piece(6, 7), piece(7, 7)]).
+set2([piece(0, 0), piece(0, 2), piece(0, 5), piece(0, 7), piece(1, 3), piece(1, 6), piece(2, 4), piece(2, 5), piece(2, 7), piece(3, 4), piece(3, 5), piece(3, 6), piece(4, 4), piece(4, 6), piece(4, 7), piece(5, 5), piece(5, 7), piece(6, 6)]).
 
 state(set1, set2, playerTurn, board).
 initial_state(set1, set2, startPlayer, initial_board).
 
 initial_screen:- 
-        write('     DOMINuP'), nl , write('PLOG FEUP 2015-16'), nl, write('Ângela Cardoso'), nl, write('Nuno Valente'), nl, nl.
+        write('     DOMINUP'), nl , write('PLOG FEUP 2015-16'), nl, write('Ângela Cardoso'), nl, write('Nuno Valente'), nl, nl.
 
 
 
