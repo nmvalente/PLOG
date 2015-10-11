@@ -7,8 +7,10 @@
 \usepackage{indentfirst}
 \usepackage{graphicx}
 \usepackage{verbatim}
+\usepackage{listings}
+\lstset{breaklines=true, basicstyle=\ttfamily}
 \usepackage[numbers,square, comma, sort&compress]{natbib}
-\usepackage[top=4cm, bottom=3cm, left=3cm, right=3.5cm]{geometry}
+\usepackage[top=4cm, bottom=3.5cm, left=2.5cm, right=2.5cm]{geometry}
 
 \begin{document}
 
@@ -140,13 +142,91 @@ O tabuleiro de jogo no Dominup é um quadriculado, cujo tamanho não deve limita
 
 Uma análise mais cuidada das regras do jogo revela que as peças são preferencialmente colocadas a subir. De facto, em cada vez, um jogador coloca tantas peças a subir quanto possível e no máximo uma peça a expandir. Além disso, em geral não será boa estratégia para nenhum dos jogadores expandir sempre no mesmo sentido. Tendo em consideração as limitações de um computador, quer em termos de capacidade de processamento, quer em termos de tamanho do ecrã, decidimos considerar um tabuleiro quadriculado de lado 24. Desta forma, é possível colocar pelo menos 8 peças em cada um dos 4 sentidos a partir do centro do tabuleiro. Eventualmente, com a experiência, podemos decidir reduzir ou aumentar este tamanho. O ideal é que o tabuleiro nunca limite as jogadas, mantendo-se tão pequeno quanto possível para facilitar o processamento.
 
-Sendo assim, o tabuleiro em Prolog é representado por uma lista $board$ de 24 linhas do tabuleiro. Por sua vez, cada linha é uma lista de 24 elementos, um para cada quadrícula. Cada elemento de uma linha é um termo complexo $half\_piece(number, level, cardinal)$ representando a meia peça de dominó lá colocada, com o seguinte significado:
+Sendo assim, o tabuleiro em Prolog é representado por uma lista \verb|board| de 24 linhas do tabuleiro. Por sua vez, cada linha é uma lista de 24 elementos, um para cada quadrícula. Cada elemento de uma linha é um termo complexo \verb|halfPiece(Number, Level, Cardinal)| representando a meia peça de dominó lá colocada, com o seguinte significado:
 \begin{itemize}
-	\item $number$ é o número da meia peça;
-	\item $level$ é o nível do tabuleiro em que a peça está colocada, 1 se for colocada em cima do tabuleiro, 2 se for colocada em cima dessa, etc;
-	\item $cardinal$ é o ponto cardeal que indica a posição da outra metade da peça.
+	\item \verb|Number| é o número da meia peça;
+	\item \verb|Level| é o nível do tabuleiro em que a peça está colocada, 1 se for colocada em cima do tabuleiro, 2 se for colocada em cima dessa, etc;
+	\item \verb|Cardinal| é o ponto cardeal que indica a posição da outra metade da peça.
 \end{itemize}
-Assim, numa quadrícula vazia temos $half\_piece(\_, \_, \_)$. Quando é colocado o dominó duplo 7, teremos $half\_piece(7,1,e)$ e $half\_piece(7,1,o)$ em duas quadrículas adjacentes. Numa fase mais avançada pode ser colocado o dominó $2 \cdot 6$ no nível 3 na vertical com $half\_piece(2,3,n)$ e $half\_piece(6,3,s)$.
+Assim, numa quadrícula vazia temos \verb|halfPiece(_, _, _)|. Quando é colocado o dominó duplo 7, teremos \verb|halfPiece(7, 1, e)| e \verb|halfPiece(7, 1, o)| em duas quadrículas adjacentes. Numa fase mais avançada pode ser colocado o dominó $2 \cdot 6$ no nível 3 na vertical com \verb|halfPiece(2, 3, n)| e \verb|halfPiece(6, 3, s)|.
+
+Além do tabuleiro, o estado de jogo contém as peças de cada jogador. Dado que apenas consideramos dois jogadores nesta implementação, teremos as listas \verb|set1| e \verb|set2| com as peças dos jogadores 1 e 2, respetivamente. À medida que vão sendo colocadas no tabuleiro, as peças são retiradas destas listas. Cada peça é representada pelo termo complexo \verb|piece(Number1, Number2)|, por exemplo, \verb|piece(2, 6)|, convencionando-se que o primeiro número é sempre menor ou igual ao segundo.
+
+Finalmente, o estado de jogo terá indicação de qual é o próximo jogador a jogar na variável \verb|playerTurn|, que pode ser 1 ou 2. Assim, o estado de jogo é representado pelo termo \verb|state(set1, set2, playerTurn, board)|.
+
+Um possível estado inicial, já com as peças distribuídas aleatoriamente pelos jogadores, é dado por:
+\begin{itemize}
+\item 
+\verb|set1([piece(0, 1), piece(0, 3), piece(0, 4), piece(0, 6), piece(1, 1),|\linebreak
+\verb|      piece(1, 2), piece(1, 4), piece(1, 5), piece(1, 7), piece(2, 2),|\linebreak
+\verb|      piece(2, 3), piece(2, 6), piece(3, 3), piece(3, 7), piece(4, 5),|\linebreak
+\verb|      piece(5, 6), piece(6, 7), piece(7, 7)]);|
+\item
+\verb|set2([piece(0, 0), piece(0, 2), piece(0, 5), piece(0, 7), piece(1, 3),|\linebreak
+\verb|      piece(1, 6), piece(2, 4), piece(2, 5), piece(2, 7), piece(3, 4),|\linebreak
+\verb|      piece(3, 5), piece(3, 6), piece(4, 4), piece(4, 6), piece(4, 7),|\linebreak
+\verb|      piece(5, 5), piece(5, 7), piece(6, 6)]);|
+\item \verb|playerTurn(1);|	
+\item 
+\verb|board([[halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       ...,|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)]]).|
+\end{itemize}
+
+Após algumas jogadas, podemos chegar ao estado ilustrado pela Figura~\ref{intermediate}. Em cima estão as peças do jogador 1, dado que esse é o próximo a jogar. Em baixo está o tabuleiro com as peças que contém até então. Cada meia peça colocada no tabuleiro tem do lado esquerdo o seu número e do lado direito o nível em que se encontra. Este estado intermédio é dado pelos seguintes termos:
+
+\begin{itemize}
+\item 
+\verb|set1([piece(0, 1), piece(0, 3), piece(0, 4), piece(0, 6), piece(1, 2),|\linebreak
+\verb|      piece(1, 4), piece(1, 5), piece(1, 7), piece(2, 2), piece(2, 6),|\linebreak
+\verb|      piece(3, 7), piece(4, 5), piece(5, 6), piece(6, 7)]);|
+\item
+\verb|set2([piece(0, 0), piece(0, 2), piece(0, 7), piece(1, 3), piece(1, 6),|\linebreak
+\verb|      piece(2, 7), piece(3, 4), piece(3, 6), piece(4, 4), piece(4, 6),|\linebreak
+\verb|      piece(5, 5), piece(5, 7)]);|
+\item \verb|playerTurn(1);|	
+\item 
+\verb|board([[halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       ...,|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       [..., halfPiece(1, 1, s), halfPiece(7, 1, e), halfPiece(7, 2, s), ...]|\linebreak
+\verb|       [..., halfPiece(1, 1, n), halfPiece(_, _, _), halfPiece(4, 2, n), ...]|\linebreak
+\verb|       [..., halfPiece(2, 3, e), halfPiece(5, 3, o), halfPiece(0, 1, o),|\linebreak
+\verb|       halfPiece(6, 1, s), ...]|\linebreak
+\verb|       [..., halfPiece(3, 2, n), halfPiece(3, 2, n), halfPiece(_, _, _),|\linebreak
+\verb|       halfPiece(6, 1, n), ...]|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       ...,|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)]]).|\linebreak
+\end{itemize}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.5]{intermediate.jpg}
+\caption{Estado intermédio do jogo.}
+\label{intermediate}
+\end{center}
+\end{figure}
+
+Um possível estado final, correspondente ao jogo da Figura~\ref{example}, deverá ter a ilustração da Figura~\ref{over} e, à exceção do tabuleiro, cuja representação é demasiado complexa para traduzir neste relatório, tem os seguintes termos:
+\begin{itemize}
+\item 
+\verb|set1([]);|
+\item
+\verb|set2([]);|
+\item \verb|playerTurn(2);|	
+\end{itemize}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.5]{over.jpg}
+\caption{Estado final do jogo.}
+\label{over}
+\end{center}
+\end{figure}
+
+
 
 %Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
 
