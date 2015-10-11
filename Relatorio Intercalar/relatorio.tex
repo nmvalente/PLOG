@@ -24,7 +24,7 @@
 \Large{Programação em Lógica}\linebreak
 }
 
-\author{\textbf{Dominup 04:}\\
+\author{\textbf{Dominup4:}\\
 Ângela Filipa Pereira Cardoso - up200204375 \\
 Nuno Miguel Rainho Valente - up200204376 \\
 \linebreak\linebreak \\
@@ -136,7 +136,19 @@ Na figura~\ref{example} pode ser observado um possível jogo de Dominup a decorr
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Representação do Estado do Jogo}
 
-Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
+O tabuleiro de jogo no Dominup é um quadriculado, cujo tamanho não deve limitar o posicionamento de peças a expandir. Uma vez que expansões sucessivas têm que ser feitas ortogonalmente, uma linha expansiva numa só direção ocupa $2 + 1 + 2 + 1 + \cdots$ quadrículas, assumindo que a primeira peça está colocada horizontalmente. Ao todo temos 36 peças, por isso seriam necessárias $2 * 18 + 18 = 54$ quadrículas para acomodar uma tal linha de expansão. Dado que a primeira peça é colocada no centro do tabuleiro, se a expansão fosse feita sempre no mesmo sentido, poderíamos ter que considerar um tabuleiro com 108 quadrículas de lado.
+
+Uma análise mais cuidada das regras do jogo revela que as peças são preferencialmente colocadas a subir. De facto, em cada vez, um jogador coloca tantas peças a subir quanto possível e no máximo uma peça a expandir. Além disso, em geral não será boa estratégia para nenhum dos jogadores expandir sempre no mesmo sentido. Tendo em consideração as limitações de um computador, quer em termos de capacidade de processamento, quer em termos de tamanho do ecrã, decidimos considerar um tabuleiro quadriculado de lado 24. Desta forma, é possível colocar pelo menos 8 peças em cada um dos 4 sentidos a partir do centro do tabuleiro. Eventualmente, com a experiência, podemos decidir reduzir ou aumentar este tamanho. O ideal é que o tabuleiro nunca limite as jogadas, mantendo-se tão pequeno quanto possível para facilitar o processamento.
+
+Sendo assim, o tabuleiro em Prolog é representado por uma lista $board$ de 24 linhas do tabuleiro. Por sua vez, cada linha é uma lista de 24 elementos, um para cada quadrícula. Cada elemento de uma linha é um termo complexo $half\_piece(number, level, cardinal)$ representando a meia peça de dominó lá colocada, com o seguinte significado:
+\begin{itemize}
+	\item $number$ é o número da meia peça;
+	\item $level$ é o nível do tabuleiro em que a peça está colocada, 1 se for colocada em cima do tabuleiro, 2 se for colocada em cima dessa, etc;
+	\item $cardinal$ é o ponto cardeal que indica a posição da outra metade da peça.
+\end{itemize}
+Assim, numa quadrícula vazia temos $half\_piece(\_, \_, \_)$. Quando é colocado o dominó duplo 7, teremos $half\_piece(7,1,e)$ e $half\_piece(7,1,o)$ em duas quadrículas adjacentes. Numa fase mais avançada pode ser colocado o dominó $2 \cdot 6$ no nível 3 na vertical com $half\_piece(2,3,n)$ e $half\_piece(6,3,s)$.
+
+%Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
