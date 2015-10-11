@@ -1,4 +1,5 @@
 /* -*- Mode:Prolog; coding:utf-8; -*- */
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%  CONFIGURACOES INICIAIS DO JOGO  %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,7 +50,6 @@ initial_screen:-
         write('     DOMINUP'), nl , write('PLOG FEUP 2015-16'), nl, write('Ângela Cardoso'), nl, write('Nuno Valente'), nl, nl.
 
 
-
 start_game:-
                                 %abolish(jogador/2), abolish(estado/4),
         initial_screen,
@@ -63,28 +63,26 @@ start_game:-
 
 %initial_board(X),display_game(X). for tests
 
-
-display_game([X|Y]) :- nl, write('    A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q   R   S   T   U   V   Y   X'), nl,
+display_game([X|Y]) :- nl, putLetters, nl,
                            write('  ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐'), nl,
                        rows(1, [X|Y]),
-                       %write('  ───────────────────────────────────────────────────────────────────────────────────────────────'), nl,
-                       write('    A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q   R   S   T   U   V   Y   X'), nl, nl,!.
+                      putLetters, nl, nl,!.
 
-rows(N, [X|Y]):-((N<10, write(0), write(N), write('│')) ; (write(N), write('│'))), 
-        (analyse(X), ((N<10, write(0), write(N)) ; (write(N))), nl, 
-         ((N<24, write('  ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤'));
-                (write('  └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')) ) ,
-         N1 is N+1, nl, rows(N1, Y)).
+rows(N, [X|Y]):-putLeftNumbers(N), analyse(X), putRightNumbers(N), nl, putGrid(N),
+         N1 is N+1, nl, rows(N1, Y).
 rows(_,[]).
+
+% Trata dos numeros, das letras e grelha no tabuleiro
+
+putLetters:-write('    A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q   R   S   T   U   V   Y   X').
+putLeftNumbers(N):-((N<10, write(0), write(N), write('│')) ; (write(N), write('│'))).
+putRightNumbers(N):-((N<10, write(0), write(N)) ; (write(N))).
+putGrid(N):-((N<24, write('  ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤'));
+                (write('  └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')) ).
 
 analyse([]):-!.
 analyse([X|Z]):-print(X),  write('│'), analyse(Z).
-
            
-/*
-traduz(','):-write(' | ').
-
-*/
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%  POSICAO INTERMEDIA DE JOGO  %%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -149,7 +147,6 @@ final_board(
    ['   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   '],
    ['   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ','   ']
         ]).
-
 
 
 %Verificacao do vencedor e de chegada ao final do jogo
