@@ -3,14 +3,14 @@
 %use the english line for english reports
 %usepackage[english]{babel}
 \usepackage[portuguese]{babel}
-\usepackage[utf8]{inputenc}
+\usepackage[utf8x]{inputenc}
 \usepackage{indentfirst}
 \usepackage{graphicx}
 \usepackage{verbatim}
 \usepackage{listings}
 \lstset{breaklines=true, basicstyle=\ttfamily}
 \usepackage[numbers,square, comma, sort&compress]{natbib}
-\usepackage[top=4cm, bottom=3.5cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage[top=2.5cm, bottom=3cm, left=2.5cm, right=2.5cm]{geometry}
 
 \begin{document}
 
@@ -44,7 +44,7 @@ Nuno Miguel Rainho Valente - up200204376 \\
 %Todas as figuras devem ser referidas no texto. %\ref{fig:codigoFigura}
 %
 %%Exemplo de código para inserção de figuras
-%%\begin{figure}[h!]
+%%\begin{figure}[htbp]
 %%\begin{center}
 %%escolher entre uma das seguintes três linhas:
 %%\includegraphics[height=20cm,width=15cm]{path relativo da imagem}
@@ -85,7 +85,7 @@ Dominup é uma variação do jogo Dominó para 2 a 4 jogadores, em que, tal como
 
 No típico Dominó existem 28 peças duplas numeradas de 0 a 6, à semelhança das faces de um dado. Já no Dominup há 36 peças duplas numeradas de 0 a 7, usando códigos binários: o ponto no centro representa 1, o circulo pequeno representa 2 e o circulo grande representa 4, como se pode ver na figura~\ref{piece}. Este desenho das peças, juntamente com as regras do Dominup e de dois outros jogos, foram criadas por Néstor Romeral Andrés em 2014, sendo o conjunto publicado por nestorgames\footnote[1]{http://www.nestorgames.com}.
 
-\begin{figure}[h!]
+\begin{figure}[htbp]
 \begin{center}
 \includegraphics[scale=0.5]{piece.jpg}
 \caption{Exemplo da peça $3 \cdot 6$.}
@@ -99,7 +99,7 @@ Existem dois tipos de colocação de peças no Dominup:
 	\item expandir - a peça é colocada na superfície de jogo, de forma a que fique adjacente e ortogonal a pelo menos uma peça já colocada, como, por exemplo, as duas peças já colocadas na figura~\ref{climb}.
 \end{itemize}
 
-\begin{figure}[h!]
+\begin{figure}[htbp]
 \begin{center}
 \includegraphics[scale=0.6]{climb.jpg}
 \caption{Exemplo de um posicionamento a subir válido.}
@@ -121,7 +121,7 @@ Se, no final da sua vez, o jogador ficar sem peças, é declarado vencedor e o j
 
 Na figura~\ref{example} pode ser observado um possível jogo de Dominup a decorrer.
 
-\begin{figure}[h!]
+\begin{figure}[htbp]
 \begin{center}
 \includegraphics[scale=0.4]{example.jpg}
 \caption{Exemplo de um jogo de Dominup.}
@@ -152,7 +152,7 @@ Assim, numa quadrícula vazia temos \verb|halfPiece(_, _, _)|. Quando é colocad
 
 Além do tabuleiro, o estado de jogo contém as peças de cada jogador. Dado que apenas consideramos dois jogadores nesta implementação, teremos as listas \verb|set1| e \verb|set2| com as peças dos jogadores 1 e 2, respetivamente. À medida que vão sendo colocadas no tabuleiro, as peças são retiradas destas listas. Cada peça é representada pelo termo complexo \verb|piece(Number1, Number2)|, por exemplo, \verb|piece(2, 6)|, convencionando-se que o primeiro número é sempre menor ou igual ao segundo.
 
-Finalmente, o estado de jogo terá indicação de qual é o próximo jogador a jogar na variável \verb|playerTurn|, que pode ser 1 ou 2. Assim, o estado de jogo é representado pelo termo \verb|state(set1, set2, playerTurn, board)|.
+Finalmente, o estado de jogo terá indicação de qual é o próximo jogador a jogar na variável \verb|playerTurn|, que pode ser 1 ou 2. Assim, o estado de jogo é representado por \verb|state(set1, set2, playerTurn, board)|.
 
 Um possível estado inicial, já com as peças distribuídas aleatoriamente pelos jogadores, é dado por:
 \begin{itemize}
@@ -168,11 +168,17 @@ Um possível estado inicial, já com as peças distribuídas aleatoriamente pelo
 \verb|      piece(5, 5), piece(5, 7), piece(6, 6)]);|
 \item \verb|playerTurn(1);|	
 \item 
-\verb|board([[halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
-\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
-\verb|       ...,|\linebreak
+\verb|board([[halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)], ...,|\linebreak
 \verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)]]).|
 \end{itemize}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.44]{intermediate.jpg}
+\caption{Estado intermédio do jogo.}
+\label{intermediate}
+\end{center}
+\end{figure}
 
 Após algumas jogadas, podemos chegar ao estado ilustrado pela Figura~\ref{intermediate}. Em cima estão as peças do jogador 1, dado que esse é o próximo a jogar. Em baixo está o tabuleiro com as peças que contém até então. Cada meia peça colocada no tabuleiro tem do lado esquerdo o seu número e do lado direito o nível em que se encontra. Este estado intermédio é dado pelos seguintes termos:
 
@@ -201,11 +207,11 @@ Após algumas jogadas, podemos chegar ao estado ilustrado pela Figura~\ref{inter
 \verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)]]).|\linebreak
 \end{itemize}
 
-\begin{figure}[h!]
+\begin{figure}[htbp]
 \begin{center}
-\includegraphics[scale=0.5]{intermediate.jpg}
-\caption{Estado intermédio do jogo.}
-\label{intermediate}
+\includegraphics[scale=0.6]{over.jpg}
+\caption{Estado final do jogo.}
+\label{over}
 \end{center}
 \end{figure}
 
@@ -218,22 +224,75 @@ Um possível estado final, correspondente ao jogo da Figura~\ref{example}, dever
 \item \verb|playerTurn(2);|	
 \end{itemize}
 
-\begin{figure}[h!]
+%Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
+
+\begin{figure}[htbp]
 \begin{center}
-\includegraphics[scale=1]{over.jpg}
-\caption{Estado final do jogo.}
-\label{over}
+\includegraphics[scale=0.7]{inter_output.jpg}
+\caption{Visualização do tabuleiro em Prolog.}
+\label{inter_output}
 \end{center}
 \end{figure}
-
-%Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Visualização do Tabuleiro}
 
-Descrever a forma de visualização do tabuleiro em modo de texto e o(s) predicado(s) Prolog construídos para o efeito.
-Deve ser incluída pelo menos uma imagem correspondente ao output produzido pelo predicado de visualização.
+Para visualizar o tabuleiro em modo de texto, começamos por idealizar o formato das Figuras~\ref{intermediate} e~\ref{over}. No entanto, para tal seria necessário desenhar quadrículas diferentes consoante as posições das peças, o que é relativamente complexo de executar. Sendo assim, pelo menos para já, cada quadrícula será sempre desenhada com traços a toda a volta, independentemente da posição das peças. Cada peça é colocada em duas quadrículas adjacentes e a relação entre as duas metades é identificada pelo conteúdo das células. Isto é, o dominó~$2 \cdot 5$ dá origem às células \verb|23e| e \verb|53o|, se for colocado no nível 3 na horizontal com o 2 à esquerda do 5.
 
+Para obter a visualização descrita acima, usamos os seguintes predicados em Prolog:
+\begin{itemize}
+	\item 
+	\begin{verbatim}
+		display_game([X|Y]) :- nl, putLetters, nl,
+	\end{verbatim}
+	\verb|write('  ------------------------------------------'), nl,|
+	\begin{verbatim}
+		rows(1, [X|Y]), putLetters, nl, nl,!.
+	\end{verbatim}
+	\item
+	\begin{verbatim}
+		rows(N, [X|Y]):-putLeftNumbers(N), analyse(X), putRightNumbers(N), nl,
+	\end{verbatim}
+	\verb|putGrid(N), N1 is N+1, nl, rows(N1, Y).|\linebreak
+	\verb|rows(_,[]).|
+	\item
+	\verb|putLetters:-write('    A   B   C   D   E   F   G   H   I   J   K   ... ').|
+	\item
+	\verb|putLeftNumbers(N):-((N<10, write(0), write(N), write('|')) ; (write(N), write('|'))).|
+	\item
+	\verb|putRightNumbers(N):-((N<10, write(0), write(N)) ; (write(N))).|
+	\item
+	\begin{verbatim}
+		putGrid(N):-((N<24, write(' |---|---|---|---|---|---|---|---|---|---|---|'));
+	\end{verbatim}
+	\verb|write('  ------------------------------------------')) ).|
+	\item
+	\verb|analyse([]):-!.|
+	\begin{verbatim}
+		analyse([X|Z]):-print(X),  write('|'), analyse(Z).
+	\end{verbatim}
+\end{itemize}
+De facto, os predicados são ligeiramente diferentes, por o \LaTeX não aceita os caracteres unicode usados para desenhar as quadrículas. De qualquer forma, o resultado está disponível na Figura~\ref{inter_output} cuja configuração é a mesma da Figura~\ref{intermediate}.
+
+%Descrever a forma de visualização do tabuleiro em modo de texto e o(s) predicado(s) Prolog construídos para o efeito.
+%Deve ser incluída pelo menos uma imagem correspondente ao output produzido pelo predicado de visualização.
+
+\begin{figure}[ht]
+ \begin{minipage}[t]{.5\textwidth}
+	\begin{center}
+		\includegraphics[scale=0.6]{inter_climb.jpg}
+		\caption{Movimento a subir.}
+		\label{inter_climb}
+	\end{center}
+ \end{minipage}
+ \begin{minipage}[t]{.5\textwidth}
+	\begin{center}
+		\includegraphics[scale=0.6]{inter_expand.jpg}
+		\caption{Movimento a expandir.}
+		\label{inter_expand}
+	\end{center}
+ \end{minipage}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Movimentos}
@@ -245,22 +304,6 @@ De acordo com as regras, na sua vez, um jogador pode realizar vários movimentos
 	\item
 	\verb|expand(playerTurn, piece, position, orientation)| para colocar uma peça a expandir. Por exemplo, \verb|expand(playerTurn(1), piece(2, 6), position(13, 12), orientation(s))| é usado para colocar o dominó $2 \cdot 6$ do jogador 1, com a metade do 2 na linha 13 e coluna 12 e a metade do 6 a sul desta, ou seja, na linha 13 e coluna 12. Na ilustração da Figura~\ref{intermediate}, este movimento é legal e coloca o dominó no nível 1 em altura, ortogonal à peça $7 \cdot 7$ que foi colocada logo no início, como mostra a Figura~\ref{inter_expand}.	
 \end{itemize}
-
-\begin{figure}[h!]
-\begin{center}
-\includegraphics[scale=0.6]{inter_climb.jpg}
-\caption{Movimento a subir.}
-\label{inter_climb}
-\end{center}
-\end{figure}
-
-\begin{figure}[h!]
-\begin{center}
-\includegraphics[scale=0.6]{inter_expand.jpg}
-\caption{Movimento a expandir.}
-\label{inter_expand}
-\end{center}
-\end{figure}
 
 %Elencar os movimentos (tipos de jogadas) possíveis e definir os cabeçalhos dos predicados que serão utilizados (ainda não precisam de estar implementados).
 
