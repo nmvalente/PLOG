@@ -150,4 +150,6 @@ final_board(
 
 %Verificacao do vencedor e de chegada ao final do jogo
 
-game_over(Winner, state(Set1, Set2, Pturn, _)):-(Set1 == [], Pturn is 2, Winner is 1) ; (Set2 == [], Pturn is 1, Winner is 2).
+game_over(Winner, state(Set1, Set2, Pturn, _)):-((Set1 == [], Pturn is 2, Winner is 1) ; (Set2 == [], Pturn is 1, Winner is 2)), message(Winner).
+
+message(Winner):-write('Player '), write(Winner), write(' won').
