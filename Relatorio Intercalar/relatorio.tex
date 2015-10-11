@@ -220,16 +220,13 @@ Um possível estado final, correspondente ao jogo da Figura~\ref{example}, dever
 
 \begin{figure}[h!]
 \begin{center}
-\includegraphics[scale=0.5]{over.jpg}
+\includegraphics[scale=1]{over.jpg}
 \caption{Estado final do jogo.}
 \label{over}
 \end{center}
 \end{figure}
 
-
-
 %Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Visualização do Tabuleiro}
@@ -241,7 +238,31 @@ Deve ser incluída pelo menos uma imagem correspondente ao output produzido pelo
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Movimentos}
 
-Elencar os movimentos (tipos de jogadas) possíveis e definir os cabeçalhos dos predicados que serão utilizados (ainda não precisam de estar implementados).
+De acordo com as regras, na sua vez, um jogador pode realizar vários movimentos, isto é, colocar várias peças no tabuleiro. Mais especificamente, devem ser colocadas todas as peças possíveis a subir (pela ordem que o jogador escolher) e, caso ainda exista, uma peça a expandir. Para realizar cada um destes posicionamentos de peças vamos utilizar os seguintes predicados:
+\begin{itemize}
+	\item
+	\verb|climb(playerTurn, piece, position, orientation)| para colocar uma peça a subir. Por exemplo, \verb|climb(playerTurn(1), piece(0, 6), position(14, 15), orientation(e))| é usado para colocar o dominó $0 \cdot 6$ do jogador 1, com a metade do 0 na linha 14 e coluna 15 e a metade do 6 a este desta, ou seja, na linha 14 e coluna 16. Na ilustração da Figura~\ref{intermediate}, este movimento é legal e coloca o dominó no nível 2 em altura, em cima das peças $0 \cdot 5$ e $6 \cdot 6$, como mostra a Figura~\ref{inter_climb}.
+	\item
+	\verb|expand(playerTurn, piece, position, orientation)| para colocar uma peça a expandir. Por exemplo, \verb|expand(playerTurn(1), piece(2, 6), position(13, 12), orientation(s))| é usado para colocar o dominó $2 \cdot 6$ do jogador 1, com a metade do 2 na linha 13 e coluna 12 e a metade do 6 a sul desta, ou seja, na linha 13 e coluna 12. Na ilustração da Figura~\ref{intermediate}, este movimento é legal e coloca o dominó no nível 1 em altura, ortogonal à peça $7 \cdot 7$ que foi colocada logo no início, como mostra a Figura~\ref{inter_expand}.	
+\end{itemize}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.6]{inter_climb.jpg}
+\caption{Movimento a subir.}
+\label{inter_climb}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[scale=0.6]{inter_expand.jpg}
+\caption{Movimento a expandir.}
+\label{inter_expand}
+\end{center}
+\end{figure}
+
+%Elencar os movimentos (tipos de jogadas) possíveis e definir os cabeçalhos dos predicados que serão utilizados (ainda não precisam de estar implementados).
 
 
 \end{document}
