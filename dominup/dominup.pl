@@ -59,7 +59,7 @@ printPieces(I, C, R, N1T, N2T, N1N, N2N, N1B, N2B) :- (C == 8 -> (nl, (R == 1 ->
 
 printPieceTop(P) :- (P == 0 -> write(' ┌───┬───┐') ; write('          ')).
 
-printPieceNumber(N1, N2, P) :- (P == 0 -> write(' | '), print(N1), write(' | '), print(N2), write(' |') ; write('          ')).
+printPieceNumber(N1, N2, P) :- (P == 0 -> write(' │ '), print(N1), write(' │ '), print(N2), write(' │') ; write('          ')).
 
 printPieceBottom(P) :- (P == 0 -> write(' └───┴───┘') ; write('          ')).
 
