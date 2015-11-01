@@ -113,54 +113,79 @@ distributePieces(N1, N2, NI1, NI2) :- (N1 >=  7 -> assert(piece(N1, N2, 1, 0)) ;
                                           (maybeRandom -> (assert(piece(N1, N2, 1, 0)), NI11 is NI1 + 1, N21 is N2 + 1, distributePieces(N1, N21, NI11, NI2)) ; 
                                            (assert(piece(N1, N2, 2, 0)), NI21 is NI2 + 1, N21 is N2 + 1, distributePieces(N1, N21, NI1, NI21))))))).
 
-randomPiece(N1, N2) :- (maybe -> assert(piece(N1, N2, 1, 0)) ; assert(piece(N1, N2, 2, 0))).
+testDistribute :-
+        assert(piece(0, 1, 1, 0)),
+        assert(piece(0, 3, 1, 0)), 
+        assert(piece(0, 4, 1, 0)), 
+        assert(piece(0, 6, 1, 0)), 
+        assert(piece(1, 1, 1, 0)), 
+        assert(piece(1, 2, 1, 0)), 
+        assert(piece(1, 4, 1, 0)), 
+        assert(piece(1, 5, 1, 0)), 
+        assert(piece(1, 7, 1, 0)), 
+        assert(piece(2, 2, 1, 0)), 
+        assert(piece(2, 3, 1, 0)), 
+        assert(piece(2, 6, 1, 0)), 
+        assert(piece(3, 3, 1, 0)), 
+        assert(piece(3, 7, 1, 0)), 
+        assert(piece(4, 5, 1, 0)), 
+        assert(piece(5, 6, 1, 0)), 
+        assert(piece(6, 7, 1, 0)),
+        assert(piece(7, 7, 1, 0)),
+        assert(piece(0, 0, 2, 0)),
+        assert(piece(0, 2, 2, 0)), 
+        assert(piece(0, 5, 2, 0)), 
+        assert(piece(0, 7, 2, 0)), 
+        assert(piece(1, 3, 2, 0)), 
+        assert(piece(1, 6, 2, 0)), 
+        assert(piece(2, 4, 2, 0)), 
+        assert(piece(2, 5, 2, 0)), 
+        assert(piece(2, 7, 2, 0)), 
+        assert(piece(3, 4, 2, 0)), 
+        assert(piece(3, 5, 2, 0)), 
+        assert(piece(3, 6, 2, 0)), 
+        assert(piece(4, 4, 2, 0)), 
+        assert(piece(4, 6, 2, 0)), 
+        assert(piece(4, 7, 2, 0)), 
+        assert(piece(5, 5, 2, 0)), 
+        assert(piece(5, 7, 2, 0)), 
+        assert(piece(6, 6, 2, 0)).
+
+
+/**************/
+/* play piece */
+/**************/
+
+:- volatile halfPiece/5.
+:- dynamic halfPiece/5.
+/* halfPiece(Line, Column, Level, Number, Cardinal). */
+
+getOtherHalf(X1, Y1, n, X2, Y2, s) :- X2 is X1 - 1, Y2 is Y1. 
+getOtherHalf(X1, Y1, e, X2, Y2, w) :- X2 is X1, Y2 is Y1 + 1. 
+getOtherHalf(X1, Y1, s, X2, Y2, n) :- X2 is X1 + 1, Y2 is Y1. 
+getOtherHalf(X1, Y1, w, X2, Y2, e) :- X2 is X1, Y2 is Y1 - 1. 
+
+playPiece(N1, N2, I, X, Y, C) :- getTopLevel(X, Y, L), L1 is L + 1, assert(halfPiece(X, Y, L1, N1, C)), 
+        getOtherHalf(X, Y, C, X2, Y2, C2), assert(halfPiece(X2, Y2, L1, N2, C2)),
+        retract(piece(N1, N2, I, 0)), assert(piece(N1, N2, I, 1)).
+
+testPlay :-
+        playPiece(7, 7, 1, 12, 12, e),
+        playPiece(2, 4, 2, 14, 13, n),
+        playPiece(3, 3, 1, 15, 13, e),
+        playPiece(4, 7, 2, 13, 13, n),
+        playPiece(0, 5, 2, 14, 15, w),
+        playPiece(2, 3, 1, 14, 13, s),
+        playPiece(1, 1, 1, 12, 11, s),
+        playPiece(3, 5, 2, 15, 14, n),
+        playPiece(2, 5, 2, 14, 13, e),
+        playPiece(6, 6, 2, 14, 16, s).
 
 /*
-piece(0, 1, 1, 0). 
-piece(0, 3, 1, 0). 
-piece(0, 4, 1, 0). 
-piece(0, 6, 1, 0). 
-piece(1, 1, 1, 1). 
-piece(1, 2, 1, 0). 
-piece(1, 4, 1, 0). 
-piece(1, 5, 1, 0). 
-piece(1, 7, 1, 0). 
-piece(2, 2, 1, 0). 
-piece(2, 3, 1, 1). 
-piece(2, 6, 1, 0). 
-piece(3, 3, 1, 1). 
-piece(3, 7, 1, 0). 
-piece(4, 5, 1, 0). 
-piece(5, 6, 1, 0). 
-piece(6, 7, 1, 0).
-piece(7, 7, 1, 1).
-
-piece(0, 0, 2, 0).
-piece(0, 2, 2, 0). 
-piece(0, 5, 2, 1). 
-piece(0, 7, 2, 0). 
-piece(1, 3, 2, 0). 
-piece(1, 6, 2, 0). 
-piece(2, 4, 2, 1). 
-piece(2, 5, 2, 1). 
-piece(2, 7, 2, 0). 
-piece(3, 4, 2, 0). 
-piece(3, 5, 2, 1). 
-piece(3, 6, 2, 0). 
-piece(4, 4, 2, 0). 
-piece(4, 6, 2, 0). 
-piece(4, 7, 2, 1). 
-piece(5, 5, 2, 0). 
-piece(5, 7, 2, 0). 
-piece(6, 6, 2, 1).
-*/
-
-/*halfPiece(Line, Column, Level, Number, Cardinal).*/
-
-halfPiece(12, 11, 1, 1, s).
-halfPiece(13, 11, 1, 1, n).
 halfPiece(12, 12, 1, 7, e).
 halfPiece(12, 13, 1, 7, w).
+halfPiece(12, 11, 1, 1, s).
+halfPiece(13, 11, 1, 1, n).
 halfPiece(13, 13, 2, 4, n).
 halfPiece(12, 13, 2, 7, s).
 halfPiece(14, 13, 1, 2, n).
@@ -177,5 +202,5 @@ halfPiece(14, 15, 1, 0, w).
 halfPiece(14, 14, 1, 5, e).
 halfPiece(14, 16, 1, 6, s).
 halfPiece(15, 16, 1, 6, n).
-
+*/
 
