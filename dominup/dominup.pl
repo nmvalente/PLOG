@@ -254,9 +254,7 @@ numberPieces(I, NP, N1, N2, R) :- N1 > 7 -> R is NP ; (N2 > 7 -> (N21 is N1 + 1 
                                               (piece(N1, N2, I, 0) -> (NP1 is NP + 1 , N21 is N2 + 1, numberPieces(I, NP1, N1, N21, R)) ; 
                                                (N21 is N2 + 1 , numberPieces(I, NP, N1, N21, R)))).
 
-checkGameOver(R) :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> R is 1 ; (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> R is 2 ; R is 0))).
-
-printResult(R) :- print('Game Over: Player '), print(R), print(' wins!').
+checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (printBoard , print('Game Over: Player 1 wins!'), fail) ; (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (printBoard , print('Game Over: Player 2 wins!'), fail) ; true))).
 
 startGame :- seedRandom , distributePieces(0, 0, 0, 0) , playFirstPiece.
 
@@ -264,9 +262,8 @@ playFirstPiece :- assert(halfPiece(9, 9, 1, 7, e)), assert(halfPiece(9, 10, 1, 7
 
 playGame :- startGame , printGame(2) , playTurn(2).
 
-playTurn(I) :- checkGameOver(R) , (R == 0 -> (getMove(I, N1, N2, X1, Y1, C1) , 
-                                              (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (print('Invalid movement.') , playTurn(I))); 
-                                              printResult(R))).
+playTurn(I) :- checkGameOver -> (getMove(I, N1, N2, X1, Y1, C1) , 
+                                 (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (print('Invalid movement.') , playTurn(I))); !).
 
 getMove(I, N1, N2, X1, Y1, C1) :- nl , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
 
