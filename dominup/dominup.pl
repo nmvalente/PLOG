@@ -27,38 +27,38 @@ printRows(X) :- printLeftNumbers(X) , printCells(X, 1) , printRightNumbers(X) , 
 
 printCells(_,25) :- !.
 printCells(X, Y) :- getTopLevel(X, Y, L) , 
-                     (L > 0 -> (halfPiece(X, Y, L, N, C) , print(N) , printCardinal(C) , print(L)) ; write('   ')) , 
-                     write('│') , Y1 is Y + 1 , printCells(X, Y1).
+                     (L > 0 -> (halfPiece(X, Y, L, N, C) , print(N) , printCardinal(C) , print(L)) ; print('   ')) , 
+                     print('│') , Y1 is Y + 1 , printCells(X, Y1).
 
 getTopLevel(X, Y, 0) :- not(halfPiece(X, Y, _, _, _)).
 getTopLevel(X, Y, L) :- halfPiece(X, Y, L, _, _) , L1 is L + 1 , not(halfPiece(X, Y, L1, _, _)).
 
-printCardinal(n) :- write('↑').
-printCardinal(e) :- write('→').
-printCardinal(s) :- write('↓').
-printCardinal(w) :- write('←').
+printCardinal(n) :- print('↑').
+printCardinal(e) :- print('→').
+printCardinal(s) :- print('↓').
+printCardinal(w) :- print('←').
 
-printNumbers :- write('    1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24').
+printNumbers :- print('    1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24').
 
-printLeftNumbers(X) :- ((X < 10, write(' ') , write(X) , write('│')) ; (write(X) , write('│'))).
+printLeftNumbers(X) :- ((X < 10, print(' ') , print(X) , print('│')) ; (print(X) , print('│'))).
 
-printRightNumbers(X) :- ((X < 10 , write(' '), write(X)) ; (write(X))).
+printRightNumbers(X) :- ((X < 10 , print(' '), print(X)) ; (print(X))).
 
-printGridTop :- write('  ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
+printGridTop :- print('  ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
 
 printGrid(X) :-((X < 24 , 
-                write('  ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤')) ;
-                write('  └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')).
+                print('  ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤')) ;
+                print('  └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')).
 
 
 /****************/
 /* print player */
 /****************/
 
-printPlayer(I) :- write('         ') , printPieces(I, 0, 0, 0, 0, 0, 0, 0, 0).
+printPlayer(I) :- print('         ') , printPieces(I, 0, 0, 0, 0, 0, 0, 0, 0).
 
 printPieces(I, C, R, N1T, N2T, N1N, N2N, N1B, N2B) :- 
-        (C == 9 -> (nl , (R == 1 -> (write(' Player ') , print(I)) ; write('         ')) , 
+        (C == 9 -> (nl , (R == 1 -> (print(' Player ') , print(I)) ; print('         ')) , 
                     C1 is 0 , R1 is R + 1 , printPieces(I, C1, R1, N1T, N2T, N1N, N2N, N1B, N2B)) ; 
          ((R == 0 -> (N1T > 7 -> ! ; 
                       (N2T > 7 -> (N2T1 is N1T + 1 , N1T1 is N1T + 1 , printPieces(I, C, R, N1T1, N2T1, N1N, N2N, N1B, N2B)) ; 
@@ -86,11 +86,11 @@ printPieces(I, C, R, N1T, N2T, N1N, N2N, N1B, N2B) :-
                                   N2B1 is N2B + 1 , printPieces(I, C1, R, N1T, N2T, N1N, N2N, N1B, N2B1)))) ; 
                      !))))))))))))).
 
-printPieceTop(P) :- (P == 0 -> write(' ┌───┬───┐') ; write('          ')).
+printPieceTop(P) :- (P == 0 -> print(' ┌───┬───┐') ; print('          ')).
 
-printPieceNumber(N1, N2, P) :- (P == 0 -> write(' │ ') , print(N1), write(' │ ') , print(N2) , write(' │') ; write('          ')).
+printPieceNumber(N1, N2, P) :- (P == 0 -> print(' │ ') , print(N1), print(' │ ') , print(N2) , print(' │') ; print('          ')).
 
-printPieceBottom(P) :- (P == 0 -> write(' └───┴───┘') ; write('          ')).
+printPieceBottom(P) :- (P == 0 -> print(' └───┴───┘') ; print('          ')).
 
 
 /**************/
@@ -262,7 +262,7 @@ numberPieces(I, NP, N1, N2, R) :- N1 > 7 -> R is NP ; (N2 > 7 -> (N21 is N1 + 1 
 
 checkGameOver(R) :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> R is 1 ; (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> R is 2 ; R is 0))).
 
-printResult(R) :- write('Game Over: Player '), print(R), write(' wins!').
+printResult(R) :- print('Game Over: Player '), print(R), print(' wins!').
 
 startGame :- distributePieces(0, 0, 0, 0) , playFirstPiece.
 
@@ -271,32 +271,32 @@ playFirstPiece :- assert(halfPiece(12, 12, 1, 7, e)), assert(halfPiece(12, 13, 1
 playGame :- startGame , printGame(2) , playTurn(2).
 
 playTurn(I) :- checkGameOver(R) , (R == 0 -> (getMove(I, N1, N2, X1, Y1, C1) , 
-                                              (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (write('Invalid movement.') , playTurn(I))); 
+                                              (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (print('Invalid movement.') , playTurn(I))); 
                                               printResult(R))).
 
 getMove(I, N1, N2, X1, Y1, C1) :- nl , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
 
-getN1(I, N1) :- write('Piece left number: ') , read(N1t) , 
+getN1(I, N1) :- prompt(_, 'Piece left number: ') , get(N1t) , 
         (piece(N1t, _, I, 0) -> N1 is N1t ; 
-         (write('You have no piece ') , print(N1t) , write(' │ ? .') , nl ,  getN1(I, N1))).
+         (print('You have no piece ') , print(N1t) , print(' │ ? .') , nl ,  getN1(I, N1))).
 
-getN2(I, N1, N2) :- write('Piece right number: ') , read(N2t) , 
+getN2(I, N1, N2) :- prompt(_, 'Piece right number: ') , read(N2t) , 
         (piece(N1, N2t, I, 0) -> N2 is N2t ; 
-         (write('You have no piece ') , print(N1) , write(' │ ') , print(N2t) , write(' .') , nl , getN2(I, N1, N2))). 
+         (print('You have no piece ') , print(N1) , print(' │ ') , print(N2t) , print(' .') , nl , getN2(I, N1, N2))). 
 
-getX1(X1) :- write('Line for left number (1 - 24): ') , read(X1t) , 
-        (X1t < 1 -> (write('Line number must be at least 1.') , nl ,  getX1(X1)) ;
-         (X1t > 24 -> (write('Line number must be at most 24.') , nl , getX1(X1)) ;
+getX1(X1) :- prompt(_, 'Line for left number (1 - 24): ') , read(X1t) , 
+        (X1t < 1 -> (print('Line number must be at least 1.') , nl ,  getX1(X1)) ;
+         (X1t > 24 -> (print('Line number must be at most 24.') , nl , getX1(X1)) ;
           X1 is X1t)).
 
-getY1(Y1) :- write('Column for left number (1 - 24): ') , read(Y1t) , 
-        (Y1t < 1 -> (write('Column number must be at least 1.') , nl , getY1(Y1)) ;
-         (Y1t > 24 -> (write('Column number must be at most 24.') , nl , getY1(Y1)) ;
+getY1(Y1) :- prompt(_, 'Column for left number (1 - 24): ') , read(Y1t) , 
+        (Y1t < 1 -> (print('Column number must be at least 1.') , nl , getY1(Y1)) ;
+         (Y1t > 24 -> (print('Column number must be at most 24.') , nl , getY1(Y1)) ;
           Y1 is Y1t)).
 
-getC1(C1) :- write('Cardinal of right number relative to left number: ') , read(C1t) ,
+getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number: ') , read(C1t) ,
         (member(C1t, [n, e, s, w]) -> copy_term(C1t, C1) ; 
-         (write('Cardinal must be one of: n, e, s, w.'), nl , getC1(C1))).
+         (print('Cardinal must be one of: n, e, s, w.'), nl , getC1(C1))).
 
 nextPlayer(I, I1, L) :- L == 0 -> I1 is 3 - I ; I1 is I.
 
