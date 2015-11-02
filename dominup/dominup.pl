@@ -22,10 +22,10 @@ not(P) :- (P -> fail ; true).
 
 printBoard :- nl , printNumbers , nl , printGridTop , nl , printRows(1) , printNumbers , nl , nl , !.
 
-printRows(25) :- !.
+printRows(19) :- !.
 printRows(X) :- printLeftNumbers(X) , printCells(X, 1) , printRightNumbers(X) , nl , printGrid(X) , X1 is X + 1 , nl , printRows(X1).
 
-printCells(_,25) :- !.
+printCells(_,19) :- !.
 printCells(X, Y) :- getTopLevel(X, Y, L) , 
                      (L > 0 -> (halfPiece(X, Y, L, N, C) , print(N) , printCardinal(C) , print(L)) ; print('   ')) , 
                      print('│') , Y1 is Y + 1 , printCells(X, Y1).
@@ -38,17 +38,17 @@ printCardinal(e) :- print('→').
 printCardinal(s) :- print('↓').
 printCardinal(w) :- print('←').
 
-printNumbers :- print('    1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24').
+printNumbers :- print('                  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18').
 
-printLeftNumbers(X) :- ((X < 10, print(' ') , print(X) , print('│')) ; (print(X) , print('│'))).
+printLeftNumbers(X) :- ((X < 10, print('               ') , print(X) , print('│')) ; (print('              ') , print(X) , print('│'))).
 
 printRightNumbers(X) :- ((X < 10 , print(' '), print(X)) ; (print(X))).
 
-printGridTop :- print('  ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
+printGridTop :- print('                ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
 
-printGrid(X) :-((X < 24 , 
-                print('  ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤')) ;
-                print('  └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')).
+printGrid(X) :-((X < 18 , 
+                print('                ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤')) ;
+                print('                └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')).
 
 
 /****************/
@@ -186,7 +186,7 @@ checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) :- checkInsideBoard(X1, Y1, X2, 
 
 checkInsideBoard(X1, Y1, X2, Y2) :- check1InsideBoard(X1) , check1InsideBoard(Y1) , check1InsideBoard(X2) , check1InsideBoard(Y2).
 
-check1InsideBoard(Z) :- Z < 1 -> fail ; (Z > 24 -> fail ; true).
+check1InsideBoard(Z) :- Z < 1 -> fail ; (Z > 18 -> fail ; true).
 
 checkPlayerPiece(N1, N2, I) :- piece(N1, N2, I, 0).
 
@@ -265,7 +265,7 @@ printResult(R) :- print('Game Over: Player '), print(R), print(' wins!').
 
 startGame :- seedRandom , distributePieces(0, 0, 0, 0) , playFirstPiece.
 
-playFirstPiece :- assert(halfPiece(12, 12, 1, 7, e)), assert(halfPiece(12, 13, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
+playFirstPiece :- assert(halfPiece(9, 9, 1, 7, e)), assert(halfPiece(9, 10, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
 
 playGame :- startGame , printGame(2) , playTurn(2).
 
@@ -283,14 +283,14 @@ getN2(I, N1, N2) :- prompt(_, 'Piece right number: ') , read(N2t) ,
         (piece(N1, N2t, I, 0) -> N2 is N2t ; 
          (print('You have no piece ') , print(N1) , print(' │ ') , print(N2t) , print(' .') , nl , getN2(I, N1, N2))). 
 
-getX1(X1) :- prompt(_, 'Line for left number (1 - 24): ') , read(X1t) , 
+getX1(X1) :- prompt(_, 'Line for left number (1 - 18): ') , read(X1t) , 
         (X1t < 1 -> (print('Line number must be at least 1.') , nl ,  getX1(X1)) ;
-         (X1t > 24 -> (print('Line number must be at most 24.') , nl , getX1(X1)) ;
+         (X1t > 18 -> (print('Line number must be at most 18.') , nl , getX1(X1)) ;
           X1 is X1t)).
 
-getY1(Y1) :- prompt(_, 'Column for left number (1 - 24): ') , read(Y1t) , 
+getY1(Y1) :- prompt(_, 'Column for left number (1 - 18): ') , read(Y1t) , 
         (Y1t < 1 -> (print('Column number must be at least 1.') , nl , getY1(Y1)) ;
-         (Y1t > 24 -> (print('Column number must be at most 24.') , nl , getY1(Y1)) ;
+         (Y1t > 18 -> (print('Column number must be at most 18.') , nl , getY1(Y1)) ;
           Y1 is Y1t)).
 
 getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number: ') , read(C1t) ,
