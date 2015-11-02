@@ -176,10 +176,10 @@ getOtherHalf(X1, Y1, w, X2, Y2, e) :- X2 is X1 , Y2 is Y1 - 1.
 /* playPiece(Number1, Number2, Player, Line, Column, Cardinal). */
 
 playPiece(N1, N2, I, X1, Y1, C1, L) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L), 
-        checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) , L1 is L + 1, 
-        assert(halfPiece(X1, Y1, L1, N1, C1)), 
-        assert(halfPiece(X2, Y2, L1, N2, C2)),
-        retract(piece(N1, N2, I, 0)) , assert(piece(N1, N2, I, 1)).
+        (checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) -> (L1 is L + 1, 
+                                                             assert(halfPiece(X1, Y1, L1, N1, C1)), 
+                                                             assert(halfPiece(X2, Y2, L1, N2, C2)),
+                                                             retract(piece(N1, N2, I, 0)) , assert(piece(N1, N2, I, 1))) ; fail).
 
 checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) :- checkInsideBoard(X1, Y1, X2, Y2) , checkPlayerPiece(N1, N2, I) , checkLevelStable(L, X2, Y2), 
         (L == 0 -> checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2) ; checkClimbNumbers(N1, X1, Y1, N2, X2, Y2, L)).
@@ -198,22 +198,17 @@ checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2) :- checkHalfOrthogonal(X1, Y1, C1)
 
 checkHalfOrthogonal(X, Y, C) :- checkNorthOrthogonal(X, Y, C) ; checkEastOrthogonal(X, Y, C) ; checkSouthOrthogonal(X, Y, C) ; checkWestOrthogonal(X, Y, C).
 
-/* halfPiece(Line, Column, Level, Number, Cardinal). */
-checkNorthOrthogonal(X, Y, C) :- C == e -> halfPiece(X - 1, Y, 1, _, n) ;
-                                 (C == s -> (halfPiece(X - 1, Y, 1, _, e) ; halfPiece(X - 1, Y, 1, _, w)) ;
-                                  (C == w -> halfPiece(X - 1, Y, 1, _, n) ; fail)).
+checkNorthOrthogonal(X, Y, C) :- X1 is X - 1 , (member(C, [e, w]) -> halfPiece(X1, Y, 1, _, n) ;
+                                                (C == s -> (halfPiece(X1, Y, 1, _, e) ; halfPiece(X1, Y, 1, _, w)) ; fail)).
 
-checkEastOrthogonal(X, Y, C) :- C == s -> halfPiece(X, Y + 1, 1, _, e) ;
-                                (C == w -> (halfPiece(X, Y + 1, 1, _, n) ; halfPiece(X, Y + 1, 1, _, s)) ;
-                                 (C == n -> halfPiece(X, Y + 1, 1, _, e) ; fail)).
+checkEastOrthogonal(X, Y, C) :- Y1 is Y + 1 , (member(C, [s, n]) -> halfPiece(X, Y1, 1, _, e) ;
+                                               (C == w -> (halfPiece(X, Y1, 1, _, n) ; halfPiece(X, Y1, 1, _, s)) ; fail)).
 
-checkSouthOrthogonal(X, Y, C) :- C == w -> halfPiece(X + 1, Y, 1, _, s) ;
-                                 (C == n -> (halfPiece(X + 1, Y, 1, _, e) ; halfPiece(X + 1, Y, 1, _, w)) ;
-                                  (C == e -> halfPiece(X + 1, Y, 1, _, s) ; fail)).
+checkSouthOrthogonal(X, Y, C) :- X1 is X + 1 , (member(C, [w, e]) -> halfPiece(X1, Y, 1, _, s) ;
+                                                (C == n -> (halfPiece(X1, Y, 1, _, e) ; halfPiece(X1, Y, 1, _, w)) ; fail)).
 
-checkWestOrthogonal(X, Y, C) :- C == n -> halfPiece(X, Y - 1, 1, _, w) ;
-                                (C == e -> (halfPiece(X, Y - 1, 1, _, n) ; halfPiece(X, Y - 1, 1, _, s)) ;
-                                 (C == s -> halfPiece(X, Y - 1, 1, _, w) ; fail)).
+checkWestOrthogonal(X, Y, C) :- Y1 is Y - 1 , (member(C, [n, s]) -> halfPiece(X, Y1, 1, _, w) ;
+                                               (C == e -> (halfPiece(X, Y1, 1, _, n) ; halfPiece(X, Y1, 1, _, s)) ; fail)).
 
 testPlay :-
         playPiece(7, 7, 1, 12, 12, e, _),
