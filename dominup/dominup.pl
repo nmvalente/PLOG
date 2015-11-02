@@ -276,7 +276,7 @@ playTurn(I) :- checkGameOver(R) , (R == 0 -> (getMove(I, N1, N2, X1, Y1, C1) ,
 
 getMove(I, N1, N2, X1, Y1, C1) :- nl , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
 
-getN1(I, N1) :- prompt(_, 'Piece left number: ') , get(N1t) , 
+getN1(I, N1) :- prompt(_, 'Piece left number: ') , read(N1t) , 
         (piece(N1t, _, I, 0) -> N1 is N1t ; 
          (print('You have no piece ') , print(N1t) , print(' │ ? .') , nl ,  getN1(I, N1))).
 
