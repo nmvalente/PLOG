@@ -109,7 +109,6 @@ printGame(I) :- printBoard, printPlayer(I).
 /* piece(Number1, Number2, Player, Played). */
 
 seedRandom :- now(B) , X is B mod 30268 + 1 , Y is B mod 30306 + 1 , Z is B mod 30322 + 1 , setrand(random(X, Y, Z, B)).
-seedRandom.
 
 maybeRandom :- random(1, 3, I) , (I == 1 -> true ; fail). 
 
@@ -264,7 +263,7 @@ checkGameOver(R) :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> R is 1 ; (numberPi
 
 printResult(R) :- print('Game Over: Player '), print(R), print(' wins!').
 
-startGame :- distributePieces(0, 0, 0, 0) , playFirstPiece.
+startGame :- seedRandom , distributePieces(0, 0, 0, 0) , playFirstPiece.
 
 playFirstPiece :- assert(halfPiece(12, 12, 1, 7, e)), assert(halfPiece(12, 13, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
 
