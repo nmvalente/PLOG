@@ -20,7 +20,7 @@ not(P) :- (P -> fail ; true).
 /* print board */
 /***************/
 
-printBoard :- nl , printLetters , nl , printGridTop , nl , printRows(1) , printLetters , nl , nl , !.
+printBoard :- nl , printNumbers , nl , printGridTop , nl , printRows(1) , printNumbers , nl , nl , !.
 
 printRows(25) :- !.
 printRows(X) :- printLeftNumbers(X) , printCells(X, 1) , printRightNumbers(X) , nl , printGrid(X) , X1 is X + 1 , nl , printRows(X1).
@@ -38,11 +38,11 @@ printCardinal(e) :- write('→').
 printCardinal(s) :- write('↓').
 printCardinal(w) :- write('←').
 
-printLetters :- write('    A   B   C   D   E   F   G   H   I   J   K   L   M   N   O   P   Q   R   S   T   U   V   Y   X').
+printNumbers :- write('    1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24').
 
-printLeftNumbers(X) :- ((X < 10, write(0) , write(X) , write('│')) ; (write(X) , write('│'))).
+printLeftNumbers(X) :- ((X < 10, write(' ') , write(X) , write('│')) ; (write(X) , write('│'))).
 
-printRightNumbers(X) :- ((X < 10 , write(0), write(X)) ; (write(X))).
+printRightNumbers(X) :- ((X < 10 , write(' '), write(X)) ; (write(X))).
 
 printGridTop :- write('  ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
 
@@ -91,6 +91,13 @@ printPieceTop(P) :- (P == 0 -> write(' ┌───┬───┐') ; write('  
 printPieceNumber(N1, N2, P) :- (P == 0 -> write(' │ ') , print(N1), write(' │ ') , print(N2) , write(' │') ; write('          ')).
 
 printPieceBottom(P) :- (P == 0 -> write(' └───┴───┘') ; write('          ')).
+
+
+/**************/
+/* print game */
+/**************/
+
+printGame(I) :- printBoard, printPlayer(I).
 
 
 /*********************/
@@ -169,7 +176,7 @@ getOtherHalf(X1, Y1, w, X2, Y2, e) :- X2 is X1 , Y2 is Y1 - 1.
 :- dynamic playPiece/6.
 /* playPiece(Number1, Number2, Player, Line, Column, Cardinal). */
 
-playPiece(N1, N2, I, X1, Y1, C1) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L), 
+playPiece(N1, N2, I, X1, Y1, C1, L) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L), 
         checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) , L1 is L + 1, 
         assert(halfPiece(X1, Y1, L1, N1, C1)), 
         assert(halfPiece(X2, Y2, L1, N2, C2)),
@@ -180,7 +187,7 @@ checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) :- checkInsideBoard(X1, Y1, X2, 
 
 checkInsideBoard(X1, Y1, X2, Y2) :- check1InsideBoard(X1) , check1InsideBoard(Y1) , check1InsideBoard(X2) , check1InsideBoard(Y2).
 
-check1InsideBoard(Z) :- Z < 1 -> ! ; (Z > 24 -> ! ; true).
+check1InsideBoard(Z) :- Z < 1 -> fail ; (Z > 24 -> fail ; true).
 
 checkPlayerPiece(N1, N2, I) :- piece(N1, N2, I, 0).
 
@@ -195,31 +202,31 @@ checkHalfOrthogonal(X, Y, C) :- checkNorthOrthogonal(X, Y, C) ; checkEastOrthogo
 /* halfPiece(Line, Column, Level, Number, Cardinal). */
 checkNorthOrthogonal(X, Y, C) :- C == e -> halfPiece(X - 1, Y, 1, _, n) ;
                                  (C == s -> (halfPiece(X - 1, Y, 1, _, e) ; halfPiece(X - 1, Y, 1, _, w)) ;
-                                  (C == w -> halfPiece(X - 1, Y, 1, _, n) ; !)).
+                                  (C == w -> halfPiece(X - 1, Y, 1, _, n) ; fail)).
 
 checkEastOrthogonal(X, Y, C) :- C == s -> halfPiece(X, Y + 1, 1, _, e) ;
                                 (C == w -> (halfPiece(X, Y + 1, 1, _, n) ; halfPiece(X, Y + 1, 1, _, s)) ;
-                                 (C == n -> halfPiece(X, Y + 1, 1, _, e) ; !)).
+                                 (C == n -> halfPiece(X, Y + 1, 1, _, e) ; fail)).
 
 checkSouthOrthogonal(X, Y, C) :- C == w -> halfPiece(X + 1, Y, 1, _, s) ;
                                  (C == n -> (halfPiece(X + 1, Y, 1, _, e) ; halfPiece(X + 1, Y, 1, _, w)) ;
-                                  (C == e -> halfPiece(X + 1, Y, 1, _, s) ; !)).
+                                  (C == e -> halfPiece(X + 1, Y, 1, _, s) ; fail)).
 
 checkWestOrthogonal(X, Y, C) :- C == n -> halfPiece(X, Y - 1, 1, _, w) ;
                                 (C == e -> (halfPiece(X, Y - 1, 1, _, n) ; halfPiece(X, Y - 1, 1, _, s)) ;
-                                 (C == s -> halfPiece(X, Y - 1, 1, _, w) ; !)).
+                                 (C == s -> halfPiece(X, Y - 1, 1, _, w) ; fail)).
 
 testPlay :-
-        playPiece(7, 7, 1, 12, 12, e),
-        playPiece(2, 4, 2, 14, 13, n),
-        playPiece(3, 3, 1, 15, 13, e),
-        playPiece(4, 7, 2, 13, 13, n),
-        playPiece(0, 5, 2, 14, 15, w),
-        playPiece(2, 3, 1, 14, 13, s),
-        playPiece(1, 1, 1, 12, 11, s),
-        playPiece(3, 5, 2, 15, 14, n),
-        playPiece(2, 5, 2, 14, 13, e),
-        playPiece(6, 6, 2, 14, 16, s).
+        playPiece(7, 7, 1, 12, 12, e, _),
+        playPiece(2, 4, 2, 14, 13, n, _),
+        playPiece(3, 3, 1, 15, 13, e, _),
+        playPiece(4, 7, 2, 13, 13, n, _),
+        playPiece(0, 5, 2, 14, 15, w, _),
+        playPiece(2, 3, 1, 14, 13, s, _),
+        playPiece(1, 1, 1, 12, 11, s, _),
+        playPiece(3, 5, 2, 15, 14, n, _),
+        playPiece(2, 5, 2, 14, 13, e, _),
+        playPiece(6, 6, 2, 14, 16, s, _).
 
 /*
 halfPiece(12, 12, 1, 7, e).
@@ -252,4 +259,44 @@ halfPiece(15, 16, 1, 6, n).
 numberPieces(I, NP, N1, N2, R) :- N1 > 7 -> R is NP ; (N2 > 7 -> (N21 is N1 + 1 , N11 is N1 + 1 , numberPieces(I, NP, N11, N21, R)) ; 
                                               (piece(N1, N2, I, 0) -> (NP1 is NP + 1 , N21 is N2 + 1, numberPieces(I, NP1, N1, N21, R)) ; 
                                                (N21 is N2 + 1 , numberPieces(I, NP, N1, N21, R)))).
+
 checkGameOver(R) :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> R is 1 ; (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> R is 2 ; R is 0))).
+
+printResult(R) :- write('Game Over: Player '), print(R), write(' wins!').
+
+startGame :- distributePieces(0, 0, 0, 0) , playFirstPiece.
+
+playFirstPiece :- assert(halfPiece(12, 12, 1, 7, e)), assert(halfPiece(12, 13, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
+
+playGame :- startGame , printGame(2) , playTurn(2).
+
+playTurn(I) :- checkGameOver(R) , (R == 0 -> (getMove(I, N1, N2, X1, Y1, C1) , 
+                                              (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (write('Invalid movement.') , playTurn(I))); 
+                                              printResult(R))).
+
+getMove(I, N1, N2, X1, Y1, C1) :- nl , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
+
+getN1(I, N1) :- write('Piece left number: ') , read(N1t) , 
+        (piece(N1t, _, I, 0) -> N1 is N1t ; 
+         (write('You have no piece ') , print(N1t) , write(' │ ? .') , nl ,  getN1(I, N1))).
+
+getN2(I, N1, N2) :- write('Piece right number: ') , read(N2t) , 
+        (piece(N1, N2t, I, 0) -> N2 is N2t ; 
+         (write('You have no piece ') , print(N1) , write(' │ ') , print(N2t) , write(' .') , nl , getN2(I, N1, N2))). 
+
+getX1(X1) :- write('Line for left number (1 - 24): ') , read(X1t) , 
+        (X1t < 1 -> (write('Line number must be at least 1.') , nl ,  getX1(X1)) ;
+         (X1t > 24 -> (write('Line number must be at most 24.') , nl , getX1(X1)) ;
+          X1 is X1t)).
+
+getY1(Y1) :- write('Column for left number (1 - 24): ') , read(Y1t) , 
+        (Y1t < 1 -> (write('Column number must be at least 1.') , nl , getY1(Y1)) ;
+         (Y1t > 24 -> (write('Column number must be at most 24.') , nl , getY1(Y1)) ;
+          Y1 is Y1t)).
+
+getC1(C1) :- write('Cardinal of right number relative to left number: ') , read(C1t) ,
+        (member(C1t, [n, e, s, w]) -> copy_term(C1t, C1) ; 
+         (write('Cardinal must be one of: n, e, s, w.'), nl , getC1(C1))).
+
+nextPlayer(I, I1, L) :- L == 0 -> I1 is 3 - I ; I1 is I.
+
