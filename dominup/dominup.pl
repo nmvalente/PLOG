@@ -15,6 +15,15 @@
 
 not(P) :- (P -> fail ; true).
 
+getNewLine :- get_code(T) , (T == 10 -> ! ; getNewLine).
+
+getChar(C) :- get_char(C) , getNewLine.
+
+getDigit(D) :- get_code(Dt) , getNewLine , D is Dt - 48.
+
+getDoubleDigit(D) :- get_code(D1t) , get_code(D2t) , (D2t == 10 -> (D is D1t - 48) ; (getNewLine , D is (D1t - 48) * 10 + D2t - 48)).
+
+
 
 /***************/
 /* print board */
@@ -267,25 +276,25 @@ playTurn(I) :- checkGameOver -> (getMove(I, N1, N2, X1, Y1, C1) ,
 
 getMove(I, N1, N2, X1, Y1, C1) :- nl , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
 
-getN1(I, N1) :- prompt(_, 'Piece left number: ') , read(N1t) , 
+getN1(I, N1) :- prompt(_, 'Piece left number: ') , getDigit(N1t) ,
         (piece(N1t, _, I, 0) -> N1 is N1t ; 
          (print('You have no piece ') , print(N1t) , print(' │ ? .') , nl ,  getN1(I, N1))).
 
-getN2(I, N1, N2) :- prompt(_, 'Piece right number: ') , read(N2t) , 
+getN2(I, N1, N2) :- prompt(_, 'Piece right number: ') , getDigit(N2t) , 
         (piece(N1, N2t, I, 0) -> N2 is N2t ; 
          (print('You have no piece ') , print(N1) , print(' │ ') , print(N2t) , print(' .') , nl , getN2(I, N1, N2))). 
 
-getX1(X1) :- prompt(_, 'Line for left number (1 - 18): ') , read(X1t) , 
+getX1(X1) :- prompt(_, 'Line for left number (1 - 18): ') , getDoubleDigit(X1t) , 
         (X1t < 1 -> (print('Line number must be at least 1.') , nl ,  getX1(X1)) ;
          (X1t > 18 -> (print('Line number must be at most 18.') , nl , getX1(X1)) ;
           X1 is X1t)).
 
-getY1(Y1) :- prompt(_, 'Column for left number (1 - 18): ') , read(Y1t) , 
+getY1(Y1) :- prompt(_, 'Column for left number (1 - 18): ') , getDoubleDigit(Y1t) , 
         (Y1t < 1 -> (print('Column number must be at least 1.') , nl , getY1(Y1)) ;
          (Y1t > 18 -> (print('Column number must be at most 18.') , nl , getY1(Y1)) ;
           Y1 is Y1t)).
 
-getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number: ') , read(C1t) ,
+getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number: ') , getChar(C1t) ,
         (member(C1t, [n, e, s, w]) -> copy_term(C1t, C1) ; 
          (print('Cardinal must be one of: n, e, s, w.'), nl , getC1(C1))).
 
