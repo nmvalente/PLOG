@@ -23,6 +23,8 @@ getDigit(D) :- get_code(Dt) , getNewLine , D is Dt - 48.
 
 getDoubleDigit(D) :- get_code(D1t) , get_code(D2t) , (D2t == 10 -> (D is D1t - 48) ; (getNewLine , D is (D1t - 48) * 10 + D2t - 48)).
 
+cls :- write('\e[H\e[J\e[3J').
+
         
 /***************/
 /* print board */
@@ -105,7 +107,7 @@ printPieceBottom(P) :- (P == 0 -> write(' └───┴───┘') ; write(
 /* print game */
 /**************/
 
-printGame(I) :- printBoard, printPlayer(I).
+printGame(I) :- cls , printBoard , printPlayer(I).
 
 
 /*********************/
@@ -271,7 +273,7 @@ playFirstPiece :- assert(halfPiece(9, 9, 1, 7, e)), assert(halfPiece(9, 10, 1, 7
 playGame(S) :- startGame(S) , printGame(2) , playTurn(2).
 
 playTurn(I) :- checkGameOver -> (getMove(I, N1, N2, X1, Y1, C1) , 
-                                 (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (printGame(I) , nl , write('Invalid movement.') , playTurn(I))); !).
+                                 (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (write('Invalid movement.') , sleep(1), printGame(I) , playTurn(I))); !).
 
 getMove(I, N1, N2, X1, Y1, C1) :- nl , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
 
