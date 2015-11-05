@@ -14,6 +14,14 @@
 /************/
 /* start up */
 /************/
+load_game(File):-restore(File).
+
+gameOption:-write('1 - Load Game, 2 - New Game'), nl,
+            repeat, get_code(Option), Option >= 49, Option =< 50,
+            (
+                ((Option == 49) -> load_game('test_db.sav')) ;
+                ((Option == 50) -> gameType)
+            ).
 
 gameType:-
         write('1 - Hum vs PC, 2 - Hum vs Hum, 3 - PC vs PC'), nl,
