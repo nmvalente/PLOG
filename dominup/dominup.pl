@@ -185,7 +185,7 @@ getY1(Y1) :- prompt(_, 'Column for left number (1 - 18): ') , getDoubleDigit(Y1t
          (Y1t > 18 -> (write('Column number must be at most 18.') , nl , getY1(Y1)) ;
           Y1 is Y1t)).
 
-getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number: ') , getChar(C1t) ,
+getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number (n, e, s, w): ') , getChar(C1t) ,
         (member(C1t, [n, e, s, w]) -> copy_term(C1t, C1) ; 
          (write('Cardinal must be one of: n, e, s, w.'), nl , getC1(C1))).
 
