@@ -40,10 +40,15 @@ printGrid(X) :-((X < 18 ,
 /* print player */
 /****************/
 
+printSpaces(N) :- N == 0 -> ! ; (write(' ') , N1 is N - 1 , printSpaces(N1)).
+
+/*printPlayerName(I) :- write(' Player ') , print(I).*/
+printPlayerName(I) :- player(I, S, _) , print(S) , atom_length(S, N) , M is 9 - N , printSpaces(M).
+
 printPlayer(I) :- write('         ') , printPieces(I, 0, 0, 0, 0, 0, 0, 0, 0).
 
 printPieces(I, C, R, N1T, N2T, N1N, N2N, N1B, N2B) :- 
-        (C == 9 -> (nl , (R == 1 -> (write(' Player ') , print(I)) ; write('         ')) , 
+        (C == 9 -> (nl , (R == 1 -> printPlayerName(I) ; write('         ')) , 
                     C1 is 0 , R1 is R + 1 , printPieces(I, C1, R1, N1T, N2T, N1N, N2N, N1B, N2B)) ; 
          ((R == 0 -> (N1T > 7 -> ! ; 
                       (N2T > 7 -> (N2T1 is N1T + 1 , N1T1 is N1T + 1 , printPieces(I, C, R, N1T1, N2T1, N1N, N2N, N1B, N2B)) ; 

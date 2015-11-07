@@ -1,33 +1,11 @@
 /* -*- Mode:Prolog; coding:utf-8; -*- */
 
-/****************/
-/* useful stuff */
-/****************/
-
-not(P) :- (P -> fail ; true).
-
-getNewLine :- get_code(T) , (T == 10 -> ! ; getNewLine).
-
-getChar(C) :- get_char(C) , getNewLine.
-
-getDigit(D) :- get_code(Dt) , getNewLine , D is Dt - 48.
-
-getDoubleDigit(D) :- get_code(D1t) , get_code(D2t) , (D2t == 10 -> (D is D1t - 48) ; (getNewLine , D is (D1t - 48) * 10 + D2t - 48)).
-
-cls :- write('\e[H\e[J\e[3J').
-
 /*********************/
 /* distribute pieces */
 /*********************/
 
-:- volatile piece/4.
 :- dynamic piece/4.
 /* piece(Number1, Number2, Player, Played). */
-
-seedRandom :- now(B) , X is B mod 30268 + 1 , Y is B mod 30306 + 1 , Z is B mod 30322 + 1 , setrand(random(X, Y, Z, B)).
-:- seedRandom.
-
-maybeRandom :- random(1, 3, I) , (I == 1 -> true ; fail). 
 
 distributePieces(N1, N2, NI1, NI2) :- (N1 >=  7 -> assert(piece(N1, N2, 1, 0)) ; 
                                        (N2 > 7 -> (N21 is N1 + 1 , N11 is N1 + 1 , distributePieces(N11, N21, NI1, NI2)) ;
@@ -79,7 +57,6 @@ testDistribute :-
 /* play piece */
 /**************/
 
-:- volatile halfPiece/5.
 :- dynamic halfPiece/5.
 /* halfPiece(Line, Column, Level, Number, Cardinal). */
 
@@ -88,7 +65,6 @@ getOtherHalf(X1, Y1, e, X2, Y2, w) :- X2 is X1 , Y2 is Y1 + 1.
 getOtherHalf(X1, Y1, s, X2, Y2, n) :- X2 is X1 + 1, Y2 is Y1. 
 getOtherHalf(X1, Y1, w, X2, Y2, e) :- X2 is X1 , Y2 is Y1 - 1.
 
-:- volatile playPiece/6.
 :- dynamic playPiece/6.
 /* playPiece(Number1, Number2, Player, Line, Column, Cardinal). */
 
@@ -128,9 +104,6 @@ checkWestOrthogonal(X, Y, C) :- Y1 is Y - 1 , (member(C, [n, s]) -> halfPiece(X,
                                                (C == e -> (halfPiece(X, Y1, 1, _, n) ; halfPiece(X, Y1, 1, _, s)) ; fail)).
 
 checkNoClimbs(I) :- getClimbPlays(I, Plays) , length(Plays, Length) , Length == 0.
-
-removePiece(N1, N2, I, X1, Y1, C1, L) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L) , L1 is L + 1 , 
-        retract(halfPiece(X1, Y1, L1, N1, C1)) , retract(halfPiece(X2, Y2, L1, N2, C2)) , assert(piece(N1, N2, I, 0)) , retract(piece(N1, N2, I, 1)).
 
 testPlay :- playFirstPiece ,
         playPiece(2, 4, 2, 11, 10, n, _) ,
@@ -177,18 +150,22 @@ numberPieces(I, NP, N1, N2, R) :- N1 > 7 -> R is NP ; (N2 > 7 -> (N21 is N1 + 1 
                                               (piece(N1, N2, I, 0) -> (NP1 is NP + 1 , N21 is N2 + 1, numberPieces(I, NP1, N1, N21, R)) ; 
                                                (N21 is N2 + 1 , numberPieces(I, NP, N1, N21, R)))).
 
-checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (printBoard , write('Game Over: Player 1 wins!'), fail) ; (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (printBoard , write('Game Over: Player 2 wins!'), fail) ; true))).
-
-startGame :- distributePieces(0, 0, 0, 0) , playFirstPiece.
+checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (printBoard , write('Game Over: Player 1 wins!'), fail) ; 
+                                                (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (printBoard , write('Game Over: Player 2 wins!'), fail) ; true))).
 
 playFirstPiece :- assert(halfPiece(9, 9, 1, 7, e)), assert(halfPiece(9, 10, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
 
-playGame :- startGame, printGame(2) , playTurn(2).
+playGame :- distributePieces(0, 0, 0, 0) , playFirstPiece , assert(turn(2)) , playTurn.
 
-playTurn(I) :- checkGameOver -> (getMove(I, N1, N2, X1, Y1, C1) , 
-                                 (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, I1, L) , printGame(I1), playTurn(I1)) ; (write('Invalid movement.') , sleep(1), printGame(I) , playTurn(I))); !).
+playTurn :- checkGameOver -> (turn(I) , player(I, _, T) , 
+                              (T == 1 -> (printGame(I) , getMove(I, N1, N2, X1, Y1, C1) , 
+                                          (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, L) , playTurn) ; 
+                                           (write('Invalid movement.') , sleep(1) , playTurn))) ;
+                               (T == 2 -> (playRandom(I) , changeTurn(I) , playTurn) ; (playBest(I), changeTurn(I) , playTurn)))) ; !.
 
-getMove(I, N1, N2, X1, Y1, C1) :- nl , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
+getMove(I, N1, N2, X1, Y1, C1) :- nl , getContinue , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
+
+getContinue :- prompt(_, 'Continue - enter , Save and exit - s: ') , getChar(C) , (C == 's' -> save_game ; ! ).
 
 getN1(I, N1) :- prompt(_, 'Piece left number: ') , getDigit(N1t) ,
         (piece(N1t, _, I, 0) -> N1 is N1t ; 
@@ -212,21 +189,23 @@ getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number: ') , g
         (member(C1t, [n, e, s, w]) -> copy_term(C1t, C1) ; 
          (write('Cardinal must be one of: n, e, s, w.'), nl , getC1(C1))).
 
-nextPlayer(I, I1, L) :- L == 0 -> I1 is 3 - I ; I1 is I.
+:- dynamic turn/1.
+
+changeTurn(I) :- I1 is 3 - I , retract(turn(I)) , assert(turn(I1)).
+
+nextPlayer(I, L) :- L == 0 -> changeTurn(I) ; !.
 
 
 /**************************/
 /* artifical intelligence */
 /**************************/
 
-:- volatile position/2.
 :- dynamic position/2.
 
 getPositions(X, Y) :- X > 18 -> ! ; 
                       (Y > 18 -> (Y1 is 1 , X1 is X + 1 , getPositions(X1, Y1)) ;
                        (assert(position(X, Y)), Y1 is Y + 1, getPositions(X, Y1))).
 :- getPositions(1, 1).
-   
 
 checkClimb(N1, N2, I, X1, Y1, C1) :- checkPlayerPiece(N1, N2, I) , getTopLevel(X1, Y1, L) , getOtherHalf(X1, Y1, C1, X2, Y2, _) , 
         checkInsideBoard(X1, Y1, X2, Y2) , checkLevelStable(L, X2, Y2) , checkClimbNumbers(N1, X1, Y1, N2, X2, Y2, L).
@@ -234,14 +213,45 @@ checkClimb(N1, N2, I, X1, Y1, C1) :- checkPlayerPiece(N1, N2, I) , getTopLevel(X
 checkExpand(N1, N2, I, X1, Y1, C1) :- checkPlayerPiece(N1, N2, I) , position(X1, Y1), getOtherHalf(X1, Y1, C1, X2, Y2, C2) , 
         checkInsideBoard(X1, Y1, X2, Y2) , checkLevelStable(0, X1, Y1), checkLevelStable(0, X2, Y2) , checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2).
 
+getClimbPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1), checkClimb(N1, N2, I, X1, Y1, C1), Plays).
+
+randomClimbPlay(I) :- getClimbPlays(I, Plays) , random_member(play(N1, N2, I, X1, Y1, C1), Plays) , playPiece(N1, N2, I, X1, Y1, C1, _).
+
+getExpandPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1), checkExpand(N1, N2, I, X1, Y1, C1), Plays).
+
+randomExpandPlay(I) :- getExpandPlays(I, Plays) , random_member(play(N1, N2, I, X1, Y1, C1), Plays) , playPiece(N1, N2, I, X1, Y1, C1, _).
+
+playRandom(I) :- randomClimbPlay(I) -> playRandom(I) ; randomExpandPlay(I).
+
 evaluateSituation(I, R) :- getNumberPlays(I, Rme) , I1 is 3 - I , getNumberPlays(I1 , Ryou) , R is Rme - Ryou.
 
 getNumberPlays(I, R) :- getClimbPlays(I, Plays), length(Plays, S) , R is S + 1.
 
-getClimbPlays(I, Plays) :- findall(play(N1, N2, X1, Y1, C1), checkClimb(N1, N2, I, X1, Y1, C1), Plays).
+playPieceNoCheck(N1, N2, I, X1, Y1, C1, L) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L) , L1 is L + 1 , 
+        assert(halfPiece(X1, Y1, L1, N1, C1)) , assert(halfPiece(X2, Y2, L1, N2, C2)) , retract(piece(N1, N2, I, 0)) , assert(piece(N1, N2, I, 1)).
 
-randomClimbPlay(I) :- getClimbPlays(I, Plays) , random_member(play(N1, N2, X1, Y1, C1), Plays) , playPiece(N1, N2, I, X1, Y1, C1, _).
+removePiece(N1, N2, I, X1, Y1, C1, L) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L) , 
+        retract(halfPiece(X1, Y1, L, N1, C1)) , retract(halfPiece(X2, Y2, L, N2, C2)) , assert(piece(N1, N2, I, 0)) , retract(piece(N1, N2, I, 1)).
 
-getExpandPlays(I, Plays) :- findall(play(N1, N2, X1, Y1, C1), checkExpand(N1, N2, I, X1, Y1, C1), Plays).
+evaluateClimb(N1, N2, I, X1, Y1, C1, R) :- checkClimb(N1, N2, I, X1, Y1, C1) , playPieceNoCheck(N1, N2, I, X1, Y1, C1, _) , 
+        evaluateSituation(I, R) , removePiece(N1, N2, I, X1, Y1, C1, _).
 
-randomExpandPlay(I) :- getExpandPlays(I, Plays) , random_member(play(N1, N2, X1, Y1, C1), Plays) , playPiece(N1, N2, I, X1, Y1, C1, _).
+evaluateExpand(N1, N2, I, X1, Y1, C1, R) :- checkExpand(N1, N2, I, X1, Y1, C1) , playPieceNoCheck(N1, N2, I, X1, Y1, C1, _) , 
+        evaluateSituation(I, R) , removePiece(N1, N2, I, X1, Y1, C1, _).
+
+evaluateClimbPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1, R), evaluateClimb(N1, N2, I, X1, Y1, C1, R), Plays).
+
+evaluateExpandPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1, R), evaluateExpand(N1, N2, I, X1, Y1, C1, R), Plays).
+
+bestPlay([], _) :- fail.
+bestPlay([Play|Plays], MPlay) :- bestPlay(Plays, Play, MPlay).
+bestPlay([], play(N1, N2, I, X1, Y1, C1, R), play(N1, N2, I, X1, Y1, C1, R)).
+bestPlay([play(N11, N21, I1, X11, Y11, C11, R1)|Plays] , play(N12, N22, I2, X12, Y12, C12, R2) , play(MN1, MN2, MI, MX1, MY1, MC1, MR)) :- 
+        (R1 > R2 -> bestPlay(Plays, play(N11, N21, I1, X11, Y11, C11, R1), play(MN1, MN2, MI, MX1, MY1, MC1, MR)) ;
+         bestPlay(Plays, play(N12, N22, I2, X12, Y12, C12, R2), play(MN1, MN2, MI, MX1, MY1, MC1, MR))).
+
+bestClimbPlay(I) :- evaluateClimbPlays(I, Plays) , bestPlay(Plays, play(N1, N2, I, X1, Y1, C1, _)) , playPiece(N1, N2, I, X1, Y1, C1, _).
+
+bestExpandPlay(I) :- evaluateExpandPlays(I, Plays) , bestPlay(Plays, play(N1, N2, I, X1, Y1, C1, _)) , playPiece(N1, N2, I, X1, Y1, C1, _).
+
+playBest(I) :- bestClimbPlay(I) -> playBest(I) ; bestExpandPlay(I).
