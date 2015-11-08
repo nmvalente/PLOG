@@ -141,11 +141,161 @@ Na figura~\ref{example} pode ser observado um possível jogo de Dominup a decorr
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Lógica do Jogo}
 
-Descrever o projeto e implementação da lógica do jogo em Prolog, incluindo a forma de representação do estado do tabuleiro e sua visualização, execução de movimentos, verificação do cumprimento das regras do jogo, determinação do final do jogo e cálculo das jogadas a realizar pelo computador utilizando diversos níveis de jogo. Sugere-se a estruturação desta secção da seguinte forma:
+Pretendemos nos subcapítulos que se seguem descrever o projeto e implementação da lógica do jogo em Prolog, incluindo a forma de representação do estado do tabuleiro e sua visualização, a execução de movimentos, verificação do cumprimento das regras do jogo, determinação do final do jogo e cálculo das jogadas a realizar pelo computador utilizando diversos níveis de jogo. 
 
-\subsection{Representação do Estado do Jogo} Pode ser idêntico ao descrito no relatório intercalar.)
+\subsection{Representação do Estado do Jogo} 
 
-\subsection{Visualização do Tabuleiro} (Pode ser idêntico ao descrito no relatório intercalar.)
+O tabuleiro de jogo no Dominup é um quadriculado, cujo tamanho não deve limitar o posicionamento de peças a expandir. Uma vez que expansões sucessivas têm que ser feitas ortogonalmente, uma linha expansiva numa só direção ocupa $2 + 1 + 2 + 1 + \cdots$ quadrículas, assumindo que a primeira peça está colocada horizontalmente. Ao todo temos 36 peças, por isso seriam necessárias $2 * 18 + 18 = 54$ quadrículas para acomodar uma tal linha de expansão. Dado que a primeira peça é colocada no centro do tabuleiro, se a expansão fosse feita sempre no mesmo sentido, poderíamos ter que considerar um tabuleiro com 108 quadrículas de lado.
+
+Uma análise mais cuidada das regras do jogo revela que as peças são preferencialmente colocadas a subir. De facto, em cada vez, um jogador coloca tantas peças a subir quanto possível e no máximo uma peça a expandir. Além disso, em geral não será boa estratégia para nenhum dos jogadores expandir sempre no mesmo sentido. Tendo em consideração as limitações de um computador, quer em termos de capacidade de processamento, quer em termos de tamanho do ecrã, decidimos considerar um tabuleiro quadriculado de lado 24. Desta forma, é possível colocar pelo menos 8 peças em cada um dos 4 sentidos a partir do centro do tabuleiro. Eventualmente, com a experiência, podemos decidir reduzir ou aumentar este tamanho. O ideal é que o tabuleiro nunca limite as jogadas, mantendo-se tão pequeno quanto possível para facilitar o processamento.
+
+Sendo assim, o tabuleiro em Prolog é representado por uma lista \verb|board| de 24 linhas do tabuleiro. Por sua vez, cada linha é uma lista de 24 elementos, um para cada quadrícula. Cada elemento de uma linha é um termo complexo \verb|halfPiece(Number, Level, Cardinal)| representando a meia peça de dominó lá colocada, com o seguinte significado:
+\begin{itemize}
+	\item \verb|Number| é o número da meia peça;
+	\item \verb|Level| é o nível do tabuleiro em que a peça está colocada, 1 se for colocada em cima do tabuleiro, 2 se for colocada em cima dessa, etc;
+	\item \verb|Cardinal| é o ponto cardeal que indica a posição da outra metade da peça.
+\end{itemize}
+Assim, numa quadrícula vazia temos \verb|halfPiece(_, _, _)|. Quando é colocado o dominó duplo 7, teremos \verb|halfPiece(7, 1, e)| e \verb|halfPiece(7, 1, o)| em duas quadrículas adjacentes. Numa fase mais avançada pode ser colocado o dominó $2 \cdot 6$ no nível 3 na vertical com \verb|halfPiece(2, 3, n)| e \verb|halfPiece(6, 3, s)|.
+
+Além do tabuleiro, o estado de jogo contém as peças de cada jogador. Dado que apenas consideramos dois jogadores nesta implementação, teremos as listas \verb|set1| e \verb|set2| com as peças dos jogadores 1 e 2, respetivamente. À medida que vão sendo colocadas no tabuleiro, as peças são retiradas destas listas. Cada peça é representada pelo termo complexo \verb|piece(Number1, Number2)|, por exemplo, \verb|piece(2, 6)|, convencionando-se que o primeiro número é sempre menor ou igual ao segundo.
+
+Finalmente, o estado de jogo terá indicação de qual é o próximo jogador a jogar na variável \verb|playerTurn|, que pode ser 1 ou 2. Assim, o estado de jogo é representado por \verb|state(set1, set2, playerTurn, board)|.
+
+Um possível estado inicial, já com as peças distribuídas aleatoriamente pelos jogadores, é dado por:
+\begin{itemize}
+\item 
+\verb|set1([piece(0, 1), piece(0, 3), piece(0, 4), piece(0, 6), piece(1, 1),|\linebreak
+\verb|      piece(1, 2), piece(1, 4), piece(1, 5), piece(1, 7), piece(2, 2),|\linebreak
+\verb|      piece(2, 3), piece(2, 6), piece(3, 3), piece(3, 7), piece(4, 5),|\linebreak
+\verb|      piece(5, 6), piece(6, 7), piece(7, 7)]);|
+\item
+\verb|set2([piece(0, 0), piece(0, 2), piece(0, 5), piece(0, 7), piece(1, 3),|\linebreak
+\verb|      piece(1, 6), piece(2, 4), piece(2, 5), piece(2, 7), piece(3, 4),|\linebreak
+\verb|      piece(3, 5), piece(3, 6), piece(4, 4), piece(4, 6), piece(4, 7),|\linebreak
+\verb|      piece(5, 5), piece(5, 7), piece(6, 6)]);|
+\item \verb|playerTurn(1);|	
+\item 
+\verb|board([[halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)], ...,|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)]]).|
+\end{itemize}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.44]{intermediate.jpg}
+\caption{Estado intermédio do jogo.}
+\label{intermediate}
+\end{center}
+\end{figure}
+
+Após algumas jogadas, podemos chegar ao estado ilustrado pela Figura~\ref{intermediate}. Em cima estão as peças do jogador 1, dado que esse é o próximo a jogar. Em baixo está o tabuleiro com as peças que contém até então. Cada meia peça colocada no tabuleiro tem do lado esquerdo o seu número e do lado direito o nível em que se encontra. Este estado intermédio é dado pelos seguintes termos:
+
+\begin{itemize}
+\item 
+\verb|set1([piece(0, 1), piece(0, 3), piece(0, 4), piece(0, 6), piece(1, 2),|\linebreak
+\verb|      piece(1, 4), piece(1, 5), piece(1, 7), piece(2, 2), piece(2, 6),|\linebreak
+\verb|      piece(3, 7), piece(4, 5), piece(5, 6), piece(6, 7)]);|
+\item
+\verb|set2([piece(0, 0), piece(0, 2), piece(0, 7), piece(1, 3), piece(1, 6),|\linebreak
+\verb|      piece(2, 7), piece(3, 4), piece(3, 6), piece(4, 4), piece(4, 6),|\linebreak
+\verb|      piece(5, 5), piece(5, 7)]);|
+\item \verb|playerTurn(1);|	
+\item 
+\verb|board([[halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       ...,|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       [..., halfPiece(1, 1, s), halfPiece(7, 1, e), halfPiece(7, 2, s), ...]|\linebreak
+\verb|       [..., halfPiece(1, 1, n), halfPiece(_, _, _), halfPiece(4, 2, n), ...]|\linebreak
+\verb|       [..., halfPiece(2, 3, e), halfPiece(5, 3, o), halfPiece(0, 1, o),|\linebreak
+\verb|       halfPiece(6, 1, s), ...]|\linebreak
+\verb|       [..., halfPiece(3, 2, n), halfPiece(3, 2, n), halfPiece(_, _, _),|\linebreak
+\verb|       halfPiece(6, 1, n), ...]|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)],|\linebreak
+\verb|       ...,|\linebreak
+\verb|       [halfPiece(_, _, _), halfPiece(_, _, _), ..., halfPiece(_, _, _)]]).|\linebreak
+\end{itemize}
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.6]{over.jpg}
+\caption{Estado final do jogo.}
+\label{over}
+\end{center}
+\end{figure}
+
+Um possível estado final, correspondente ao jogo da Figura~\ref{example}, deverá ter a ilustração da Figura~\ref{over} e, à exceção do tabuleiro, cuja representação é demasiado complexa para traduzir neste relatório, tem os seguintes termos:
+\begin{itemize}
+\item 
+\verb|set1([]);|
+\item
+\verb|set2([]);|
+\item \verb|playerTurn(2);|	
+\end{itemize}
+
+%Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
+
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.7]{inter_output.jpg}
+\caption{Visualização do tabuleiro em Prolog.}
+\label{inter_output}
+\end{center}
+\end{figure}
+
+\subsection{Visualização do Tabuleiro} 
+Para visualizar o tabuleiro em modo de texto, começamos por idealizar o formato das Figuras~\ref{intermediate} e~\ref{over}. No entanto, para tal seria necessário desenhar quadrículas diferentes consoante as posições das peças, o que é relativamente complexo de executar. Sendo assim, pelo menos para já, cada quadrícula será sempre desenhada com traços a toda a volta, independentemente da posição das peças. Cada peça é colocada em duas quadrículas adjacentes e a relação entre as duas metades é identificada pelo conteúdo das células. Isto é, o dominó~$2 \cdot 5$ dá origem às células \verb|23e| e \verb|53o|, se for colocado no nível 3 na horizontal com o 2 à esquerda do 5.
+
+Para obter a visualização descrita acima, usamos os seguintes predicados em Prolog:
+\begin{itemize}
+	\item 
+	\begin{verbatim}
+		display_game([X|Y]) :- nl, putLetters, nl,
+	\end{verbatim}
+	\verb|write('  ------------------------------------------'), nl,|
+	\begin{verbatim}
+		rows(1, [X|Y]), putLetters, nl, nl,!.
+	\end{verbatim}
+	\item
+	\begin{verbatim}
+		rows(N, [X|Y]):-putLeftNumbers(N), analyse(X), putRightNumbers(N), nl,
+	\end{verbatim}
+	\verb|putGrid(N), N1 is N+1, nl, rows(N1, Y).|\linebreak
+	\verb|rows(_,[]).|
+	\item
+	\verb|putLetters:-write('    A   B   C   D   E   F   G   H   I   J   K   ... ').|
+	\item
+	\verb|putLeftNumbers(N):-((N<10, write(0), write(N), write('|')) ; (write(N), write('|'))).|
+	\item
+	\verb|putRightNumbers(N):-((N<10, write(0), write(N)) ; (write(N))).|
+	\item
+	\begin{verbatim}
+		putGrid(N):-((N<24, write(' |---|---|---|---|---|---|---|---|---|---|---|'));
+	\end{verbatim}
+	\verb|write('  ------------------------------------------')) ).|
+	\item
+	\verb|analyse([]):-!.|
+	\begin{verbatim}
+		analyse([X|Z]):-print(X),  write('|'), analyse(Z).
+	\end{verbatim}
+\end{itemize}
+De facto, os predicados são ligeiramente diferentes, por o \LaTeX não aceita os caracteres unicode usados para desenhar as quadrículas. De qualquer forma, o resultado está disponível na Figura~\ref{inter_output} cuja configuração é a mesma da Figura~\ref{intermediate}.
+
+
+\begin{figure}[ht]
+ \begin{minipage}[t]{.5\textwidth}
+	\begin{center}
+		\includegraphics[scale=0.6]{inter_climb.jpg}
+		\caption{Movimento a subir.}
+		\label{inter_climb}
+	\end{center}
+ \end{minipage}
+ \begin{minipage}[t]{.5\textwidth}
+	\begin{center}
+		\includegraphics[scale=0.6]{inter_expand.jpg}
+		\caption{Movimento a expandir.}
+		\label{inter_expand}
+	\end{center}
+ \end{minipage}
+\end{figure}
 
 \subsection{Lista de Jogadas Válidas} Obtenção de uma lista de jogadas possíveis. Exemplo: \textit{valid\_moves(+Board, -ListOfMoves)}.
 
@@ -153,19 +303,32 @@ Descrever o projeto e implementação da lógica do jogo em Prolog, incluindo a 
 
 \subsection{Avaliação do Tabuleiro} Avaliação do estado do jogo, que permitirá comparar a aplicação das diversas jogadas disponíveis. Exemplo: \textit{value(+Board, +Player, -Value)}.
 
-\subsection{Final do Jogo} Verificação do fim do jogo, com identificação do vencedor. Exemplo: \textit{game\_over(+Board, -Winner)}.
+\subsection{Final do Jogo} Verificação do fim do jogo, com identificação do vencedor através de \textit{checkGameOver}.
 
-\subsection{Jogada do Computador} Escolha da jogada a efetuar pelo computador, dependendo do nível de dificuldade. Por exemplo: \textit{choose\_move(+Level, +Board, -Move)}.
+\subsection{Jogada do Computador} Escolha da jogada a efetuar pelo computador, dependendo do nível de dificuldade \textit{choose\_move(+Level, +Board, -Move)}.
 
 - uma mais simples que de entre as jogadas válidas seleciona uma qualquer, e uma outra mais complexa que avalia para cada jogada possível qual a mais eficaz para levar o computador a vencer.
-
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Interface com o Utilizador}
 
-Descrever o módulo de interface com o utilizador em modo de texto.
+O utilizador apenas necessita de ir digitando alguns carateres no teclado, seguidos da tecla Enter, interagindo com o jogo.
+No ecrã inicial o jogador tem de escolher se pretende iniciar um novo jogo ou um previamente gravado. Se seguir um jogo já gravado, este é carregado com as definições inicialmente selecionadas pelo utilizador e o jogo continuará a se desenrolar. Caso contrário, o jogador tem de escolher se pretende jogar contra o computador, contra outro jogador ou então observar um jogo entre computador vs computador. 
+O nível de dificuldade, fácil ou difícil será escolhido logo a seguir.
+Para terminar a configuração do jogo falta apenas escrever o(s) nome(s) do(s) jogador(es).
+
+O jogo inicia mostrando o tabuleiro de jogo com a peça 7 - 7 colocada no meio do tabuleiro. A quem pertencesse esta peça no início do jogo tem direito a continuar a jogar. E para jogar, cada jogador tem acesso às suas peças e é convidado a escolher o seguinte para efetivar uma jogada:
+
+\begin{itemize}
+\item colocar o número da peça do lado esquerdo que pretende jogar
+\item colocar o número da peça do lado direito que pretende jogar
+\item indicar onde pretende colocar a metade esquerda da peça, indicando para isso a linha e a coluna
+\item indicar a orientação da peça, dizendo para isso onde se situa a metade direita da peça em relação à metade esquerda, utilizando as opções "n", "e", "s", "w", designando norte, este, sul, oeste, respetivamente.
+\end{itemize}
+
+Todas as outras navegações durante o jogo referidas, à exceção da última, será necessário introduzir um número para avançar na configuração da jogada.
+
+%Descrever o módulo de interface com o utilizador em modo de texto.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -179,7 +342,7 @@ Relativamente ao projeto consideramos que tudo o que delineamos e que todos os p
 
 Gostaríamos de ter desenvolvido mais um nível de inteligência artificial e ter colocado a dimensão do tabuleiro de jogo a ser adaptado dinamicamente, isto é, consoante a colocação de peças e os movimentos de expand,o tabuleiro ir aumentando de dimensão.
 
-Todavia, estamos agradados com o rumo que o porjeto tomou e o resultado final foi o que esperavamos.
+Todavia, estamos agradados com o rumo que o projeto tomou e o resultado final foi o que esperavamos.
 
 %Que conclui deste projecto? Como poderia melhorar o trabalho desenvolvido?
 
