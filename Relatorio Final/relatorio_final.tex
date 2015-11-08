@@ -187,7 +187,11 @@ O tabuleiro de jogo no Dominup é um quadriculado, cujo tamanho não deve limita
 
 Uma análise mais cuidada das regras do jogo revela que as peças são preferencialmente colocadas a subir. De facto, em cada vez, um jogador coloca tantas peças a subir quanto possível e no máximo uma peça a expandir. Além disso, em geral não será boa estratégia para nenhum dos jogadores expandir sempre no mesmo sentido. Tendo em consideração as limitações de um computador, quer em termos de capacidade de processamento, quer em termos de tamanho do ecrã, decidimos considerar um tabuleiro quadriculado de lado 18. Desta forma, é possível colocar pelo menos 5 peças em cada um dos 4 sentidos a partir do centro do tabuleiro. A experiência revela que este tamanho por vezes se torna limitativo. No entanto, tamanhos superiores entram em desacordo com o nosso princípio de manter uma apresentação visual intuitiva e agradável.
 
-Inicialmente, o tabuleiro era representado por uma lista \verb|board| de linhas do tabuleiro. Por sua vez, cada linha é uma lista de elementos, um para cada quadrícula. Rapidamente nos apercebemos que dado o tamanho do tabuleiro esta solução não seria nada eficiente, além de que se tornava bastante complexa. Adicionalmente, o jogo que pretendíamos implementar apresenta a facilidade de ser essencialmente construtivo, as peças são colocadas na sua posição final, não havendo mudanças. Sendo assim partimos para uma implementação do tabuleiro como um conjunto de factos do tipo \verb|halfPiece(Line, Column, Level, Number, Cardinal)| representando a meia peça de dominó lá colocada, com o seguinte significado:
+Inicialmente, o tabuleiro era representado por uma lista \verb|board| de linhas do tabuleiro. Por sua vez, cada linha é uma lista de elementos, um para cada quadrícula. Rapidamente nos apercebemos que dado o tamanho do tabuleiro esta solução não seria nada eficiente, além de que se tornava bastante complexa. Adicionalmente, o jogo que pretendíamos implementar apresenta a facilidade de ser essencialmente construtivo, as peças são colocadas na sua posição final, não havendo mudanças. Sendo assim, partimos para uma implementação do tabuleiro como um conjunto de factos do tipo 
+\begin{center}
+	\verb|halfPiece(Line, Column, Level, Number, Cardinal)|,
+\end{center} 
+representando a meia peça de dominó lá colocada, com o seguinte significado:
 \begin{itemize}
 	\item \verb|Line| é o linha do tabuleiro;
 	\item \verb|Column| é a coluna do tabuleiro;
@@ -195,9 +199,13 @@ Inicialmente, o tabuleiro era representado por uma lista \verb|board| de linhas 
 	\item \verb|Number| é o número da meia peça;
 	\item \verb|Cardinal| é o ponto cardeal que indica a posição da outra metade da peça (n, e, s, w).
 \end{itemize}
-Assim, numa quadrícula não temos qualquer predicado do tipo \verb|halfPiece|. Quando é colocado o dominó duplo 7 nas quadrículas \verb|(9, 9)| e \verb|(9, 10)|, teremos \verb|halfPiece(9, 9, 1, 7, e)| e \verb|halfPiece(9, 10, 1, 7, w)|. Numa fase mais avançada pode ser colocado o dominó $2 \cdot 6$ no nível 3 na vertical com \verb|halfPiece(4, 5, 3, 2, n)| e \verb|halfPiece(3, 5, 3, 6, s)|, por exemplo.
+Assim, numa quadrícula não temos qualquer predicado do tipo \verb|halfPiece|. Quando é colocado o dominó duplo 7 no meio do tabuleiro, teremos \verb|halfPiece(9, 9, 1, 7, e)| e \verb|halfPiece(9, 10, 1, 7, w)|. Numa fase mais avançada pode ser colocado o dominó $2 \cdot 6$ no nível 3 com o 2 abaixo do 6, usando os factos \verb|halfPiece(4, 5, 3, 2, n)| e \verb|halfPiece(3, 5, 3, 6, s)|.
 
-Além do tabuleiro, o estado de jogo contém as peças de cada jogador. Dado que apenas consideramos dois jogadores nesta implementação, temos factos do tipo \verb|piece(Number1, Number2, Player, Played)|, com o seguinte significado:
+Além do tabuleiro, o estado de jogo contém as peças de cada jogador. Dado que apenas consideramos dois jogadores nesta implementação, temos factos do tipo 
+\begin{center}
+\verb|piece(Number1, Number2, Player, Played)|, 
+\end{center} 
+com o seguinte significado:
 \begin{itemize}
 	\item \verb|Number1| é o menor número da peça;
 	\item \verb|Number2| é o maior número da peça;
@@ -279,7 +287,7 @@ test :-
         assert(player(2, 'Nuno', 1)).
 \end{lstlisting}
 
-Um possível estado final, tem a ilustração da Figura~\ref{over}, onde se pode observar além do tabuleiro, anunciado qual o jogador que venceu.
+Um possível estado final, tem a ilustração da Figura~\ref{over}, onde se pode observar, além do tabuleiro, o jogador que venceu.
 
 \begin{figure}[htbp]
 \begin{center}
@@ -291,14 +299,6 @@ Um possível estado final, tem a ilustração da Figura~\ref{over}, onde se pode
 
 %Descrever a forma de representação do estado do tabuleiro (tipicamente uma lista de listas), com exemplificação em Prolog de posições iniciais do jogo, posições intermédias e finais, acompanhadas de imagens ilustrativas.
 
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[scale=0.6]{inter_output.jpg}
-\caption{Visualização do tabuleiro em Prolog.}
-\label{inter_output}
-\end{center}
-\end{figure}
-
 \subsection{Visualização do Tabuleiro}
  
 Para visualizar o tabuleiro em modo de texto, cada quadrícula é sempre desenhada com traços a toda a volta, independentemente da posição das peças. Cada peça é colocada em duas quadrículas adjacentes e a relação entre as duas metades é identificada pelo conteúdo das células. Isto é, o dominó~$2 \cdot 5$ dá origem às células \verb|2→3| e \verb|5←3|, se for colocado no nível 3 na horizontal com o 2 à esquerda do 5. O resultado é aquele que se pode observar nas Figuras~\ref{intermediate} e~\ref{over}.
@@ -309,7 +309,7 @@ Os predicados usados para este efeito cuja definição pode ser consultada no An
 	\item \verb|printRows| - para imprimir as linhas do tabuleiro;
 	\item \verb|printCells| - para imprimir as quadrículas do tabuleiro;
 	\item \verb|getTopLevel(X, Y, L)| - para obter o nível mais elevado de uma quadrícula;
-	\item \verb|printCardinal| - para imprimir o cardal (n, e, s, w) usando setas;
+	\item \verb|printCardinal| - para imprimir o cardeal (n, e, s, w) usando setas;
 	\item \verb|printNumbers| - para imprimir os números no topo e no fim do tabuleiro;
 	\item \verb|printLeftNumbers(X)| - para imprimir o número à esquerda da linha X do tabuleiro;
 	\item \verb|printRightNumbers(X)| - para imprimir o número à direita da linha X do tabuleiro;
