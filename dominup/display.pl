@@ -42,7 +42,6 @@ printGrid(X) :-((X < 18 ,
 
 printSpaces(N) :- N == 0 -> ! ; (write(' ') , N1 is N - 1 , printSpaces(N1)).
 
-/*printPlayerName(I) :- write(' Player ') , print(I).*/
 printPlayerName(I) :- player(I, S, _) , print(S) , atom_length(S, N) , M is 9 - N , printSpaces(M).
 
 printPlayer(I) :- write('         ') , printPieces(I, 0, 0, 0, 0, 0, 0, 0, 0).

@@ -64,16 +64,15 @@ easyOrHard(Option) :- prompt(_, '1 - Easy, 2 - Hard : ') ,
 
 playerNames(CHOption, EHOption) :- CHOption == 1 ->
                                    (prompt(_, 'Player name: ') , get8String(X1) , 
-                                    (X1 = '' -> X = 'Player' ; X = X1) , write('Hello ') , write(X) , write('!') , nl , Y = 'Computer' ,
+                                    (X1 = '' -> X = 'Player' ; X = X1) , nl , write('Hello ') , write(X) , write('!') , nl , Y = 'Computer' ,
                                     (maybeRandom -> (assert(player(1, X, 1)) , assert(player(2, Y, EHOption))) ; 
                                      (assert(player(1, Y, EHOption)) , assert(player(2, X, 1))))) ;
-                                   (prompt(_, 'Name of one player: ') , get8String(X1) , 
-                                    (X1 = '' -> X = 'Player 1' ; X = X1) , write('Hello ') , write(X) , write('!') , nl,  
-                                    prompt(_, 'Name of the other player: ') , get8String(Y1) , 
-                                    (Y1 = '' -> Y = 'Player 2' ; Y = Y1) , write('Hello ') , write(Y) , write('!') , nl ,
+                                   (prompt(_, 'Name of one player: ') , get8String(X1) , (X1 = '' -> X = 'Player 1' ; X = X1),  
+                                    prompt(_, 'Name of the other player: ') , get8String(Y1) , (Y1 = '' -> Y = 'Player 2' ; Y = Y1) , 
+                                    nl , write('Hello ') ,  write(X) , write(' and ' ) , write(Y) , write('!') , nl ,
                                     (maybeRandom -> (assert(player(1, X, 1)) , assert(player(2, Y, 1))) ; (assert(player(1, Y, 1)) , assert(player(2, X, 1))))).
 
-save_game :- prompt(_, 'File name: ') , getString(S) , save_program(S) , halt.
+save_game :- prompt(_, 'File name: ') , getString(S) , save_program(S) , break.
 
 load_game :- prompt(_, 'File name: ') , getString(S) , atom_concat(S, '.sav', Ssav) , 
         (file_exists(Ssav, exist) -> (restore(S) , playTurn) ; 

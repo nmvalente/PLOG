@@ -150,8 +150,8 @@ numberPieces(I, NP, N1, N2, R) :- N1 > 7 -> R is NP ; (N2 > 7 -> (N21 is N1 + 1 
                                               (piece(N1, N2, I, 0) -> (NP1 is NP + 1 , N21 is N2 + 1, numberPieces(I, NP1, N1, N21, R)) ; 
                                                (N21 is N2 + 1 , numberPieces(I, NP, N1, N21, R)))).
 
-checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (printBoard , write('Game Over: Player 1 wins!'), fail) ; 
-                                                (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (printBoard , write('Game Over: Player 2 wins!'), fail) ; true))).
+checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (printBoard , write('Game Over: ') , printPlayerName(1) , write(' wins!') , nl , sleep(1) , fail) ; 
+                                                (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (printBoard , write('Game Over: ') , printPlayerName(2) , nl , sleep(1) , fail) ; true))).
 
 playFirstPiece :- assert(halfPiece(9, 9, 1, 7, e)), assert(halfPiece(9, 10, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
 
@@ -161,7 +161,8 @@ playTurn :- checkGameOver -> (turn(I) , player(I, _, T) ,
                               (T == 1 -> (printGame(I) , getMove(I, N1, N2, X1, Y1, C1) , 
                                           (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, L) , playTurn) ; 
                                            (write('Invalid movement.') , sleep(1) , playTurn))) ;
-                               (T == 2 -> (playRandom(I) , changeTurn(I) , playTurn) ; (playBest(I), changeTurn(I) , playTurn)))) ; !.
+                               (T == 2 -> (I1 is 3 - I , printGame(I1) , nl , write('Computer thinking...') , sleep(1) , playRandom(I) , changeTurn(I) , playTurn) ; 
+                                (I1 is 3 - I , printGame(I1) , nl , write('Computer thinking...') , playBest(I), changeTurn(I) , playTurn)))) ; !.
 
 getMove(I, N1, N2, X1, Y1, C1) :- nl , getContinue , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
 
