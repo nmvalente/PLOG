@@ -1,0 +1,15 @@
+\select@language {portuguese}
+\contentsline {section}{\numberline {1}Introdu\IeC {\c c}\IeC {\~a}o}{4}
+\contentsline {section}{\numberline {2}O Jogo Dominup}{4}
+\contentsline {section}{\numberline {3}L\IeC {\'o}gica do Jogo}{5}
+\contentsline {subsection}{\numberline {3.1}Representa\IeC {\c c}\IeC {\~a}o do Estado do Jogo}{5}
+\contentsline {subsection}{\numberline {3.2}Visualiza\IeC {\c c}\IeC {\~a}o do Tabuleiro}{5}
+\contentsline {subsection}{\numberline {3.3}Lista de Jogadas V\IeC {\'a}lidas}{5}
+\contentsline {subsection}{\numberline {3.4}Execu\IeC {\c c}\IeC {\~a}o de Jogadas}{6}
+\contentsline {subsection}{\numberline {3.5}Avalia\IeC {\c c}\IeC {\~a}o do Tabuleiro}{6}
+\contentsline {subsection}{\numberline {3.6}Final do Jogo}{6}
+\contentsline {subsection}{\numberline {3.7}Jogada do Computador}{6}
+\contentsline {section}{\numberline {4}Interface com o Utilizador}{6}
+\contentsline {section}{\numberline {5}Conclus\IeC {\~o}es}{6}
+\contentsline {section}{Bibliografia}{7}
+\contentsline {section}{\numberline {A}C\IeC {\'o}digo fonte do jogo Dominup}{8}
