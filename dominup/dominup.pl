@@ -6,14 +6,30 @@
 
 :- dynamic piece/4.
 /* piece(Number1, Number2, Player, Played). */
+/* each piece has 2 numbers, 
+   the player it belongs to (1 or 2) 
+   and a toggle that tells if it has been played (0 if no, 1 if yes) */
 
-distributePieces(N1, N2, NI1, NI2) :- (N1 >=  7 -> assert(piece(N1, N2, 1, 0)) ; 
-                                       (N2 > 7 -> (N21 is N1 + 1 , N11 is N1 + 1 , distributePieces(N11, N21, NI1, NI2)) ;
-                                        (NI1 == 17 -> assert(piece(N1, N2, 2, 0)) , NI21 is NI2 + 1 , N21 is N2 + 1 , distributePieces(N1, N21, NI1, NI21) ;
-                                         (NI2 == 18 -> assert(piece(N1, N2, 1, 0)) , NI11 is NI1 + 1 , N21 is N2 + 1 , distributePieces(N1, N21, NI11, NI2) ;
-                                          (maybeRandom -> (assert(piece(N1, N2, 1, 0)) , NI11 is NI1 + 1 , N21 is N2 + 1 , distributePieces(N1, N21, NI11, NI2)) ; 
-                                           (assert(piece(N1, N2, 2, 0)) , NI21 is NI2 + 1, N21 is N2 + 1 , distributePieces(N1, N21, NI1, NI21))))))).
 
+/* random distribution of game pieces among players */
+distributePieces(N1, N2, NI1, NI2) :- 
+        (N1 >=  7 -> assert(piece(N1, N2, 1, 0)) ;                      /* player 1 always gets piece 7 │ 7 */
+         (N2 > 7 -> (N21 is N1 + 1 , N11 is N1 + 1 ,                    /* recursively advance to next piece */
+                     distributePieces(N11, N21, NI1, NI2)) ;            /* if x │ 7 has been done, do x+1 │ x+1 */
+          (NI1 == 17 -> assert(piece(N1, N2, 2, 0)) ,                   /* if player 1 has 17 pieces all other */
+                        NI21 is NI2 + 1 , N21 is N2 + 1 ,               /* pieces go to player 2, except 7 | 7 */
+                        distributePieces(N1, N21, NI1, NI21) ;          /* as we saw above */
+           (NI2 == 18 -> assert(piece(N1, N2, 1, 0)) ,                  /* if player 2 has 18 pieces all other */
+                         NI11 is NI1 + 1 , N21 is N2 + 1 ,              /* pieces go to player 1 */
+                         distributePieces(N1, N21, NI11, NI2) ;
+            (maybeRandom -> (assert(piece(N1, N2, 1, 0)) ,              /* otherwise, maybe atribute this piece to player 1 */
+                             NI11 is NI1 + 1 , N21 is N2 + 1 ,          /* and advance to the next piece */
+                             distributePieces(N1, N21, NI11, NI2)) ;    /* using the recursive function */
+             (assert(piece(N1, N2, 2, 0)) ,                             /* or maybe atribute this piece to player 2 */
+              NI21 is NI2 + 1, N21 is N2 + 1 ,                          /* and advance to the next piece */
+              distributePieces(N1, N21, NI1, NI21))))))).               /* using the recursive function */
+
+/* fixed distribution of pieces used in test phase, no longer needed for game to run */
 testDistribute :-
         assert(piece(0, 1, 1, 0)),
         assert(piece(0, 3, 1, 0)), 
@@ -59,7 +75,11 @@ testDistribute :-
 
 :- dynamic halfPiece/5.
 /* halfPiece(Line, Column, Level, Number, Cardinal). */
+/* each halPiece has a position in the board (line, column and level), 
+   a number and the cardinal corresponding to its other half */
 
+/* predicate used to obtain the position of the other half of a piece, 
+   given the position and cardinal of one half */
 getOtherHalf(X1, Y1, n, X2, Y2, s) :- X2 is X1 - 1, Y2 is Y1. 
 getOtherHalf(X1, Y1, e, X2, Y2, w) :- X2 is X1 , Y2 is Y1 + 1. 
 getOtherHalf(X1, Y1, s, X2, Y2, n) :- X2 is X1 + 1, Y2 is Y1. 
@@ -67,44 +87,109 @@ getOtherHalf(X1, Y1, w, X2, Y2, e) :- X2 is X1 , Y2 is Y1 - 1.
 
 :- dynamic playPiece/6.
 /* playPiece(Number1, Number2, Player, Line, Column, Cardinal). */
+/* to play a piece we need its numbers, the player holding that piece 
+   and the position for the smaller half of the piece (line, column and cardinal) */
 
-playPiece(N1, N2, I, X1, Y1, C1, L) :- checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) -> (L1 is L + 1 , 
-                                                             assert(halfPiece(X1, Y1, L1, N1, C1)) , 
-                                                             assert(halfPiece(X2, Y2, L1, N2, C2)) ,
-                                                             retract(piece(N1, N2, I, 0)) , assert(piece(N1, N2, I, 1))) ; fail.
+/* predicate used to play a piece */
+playPiece(N1, N2, I, X1, Y1, C1, L) :-                          /* L is output */
+        checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) ->      /* check if this play is valid */
+        (L1 is L + 1 ,                                          /* the new level is 1 above the current level */
+         assert(halfPiece(X1, Y1, L1, N1, C1)) ,                /* create first halfPiece */
+         assert(halfPiece(X2, Y2, L1, N2, C2)) ,                /* create second halfPiece */
+         retract(piece(N1, N2, I, 0)) ,                         /* remove piece from player's hand */
+         assert(piece(N1, N2, I, 1))) ;                         /* place piece back but marked as played */
+        fail.                                                   /* if checkPlay fails, fail and do nothing */
 
-checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) :- getTopLevel(X1, Y1, L) , getOtherHalf(X1, Y1, C1, X2, Y2, C2) , 
-        checkInsideBoard(X1, Y1, X2, Y2) , checkPlayerPiece(N1, N2, I) , checkLevelStable(L, X2, Y2) , 
-        (L == 0 -> checkNoClimbs(I) , checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2) ; checkClimbNumbers(N1, X1, Y1, N2, X2, Y2, L)).
+/* predicate used to check if a play is valid */
+checkPlay(N1, N2, I, X1, Y1, C1, X2, Y2, C2, L) :-              /* X2, Y2, C2 and L are output */
+        getTopLevel(X1, Y1, L) ,                                /* find the current level of the position X1, Y1 */
+        getOtherHalf(X1, Y1, C1, X2, Y2, C2) ,                  /* compute the position of the other half given X1, Y1 and C1 */
+        checkInsideBoard(X1, Y1, X2, Y2) ,                      /* verify that the piece will be place inside the board */
+        checkPlayerPiece(N1, N2, I) ,                           /* verify that the player holds the piece and it has not been played yet */
+        checkLevelStable(L, X2, Y2) ,                           /* verify that the other half has the same level */
+        (L == 0 ->                                              /* if the current level is 0 */
+         checkNoClimbs(I) ,                                     /* verify that the player has no more climb moves */
+         checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2) ;        /* and check that this expansion is orthogonal to another piece on the board */
+         checkClimbNumbers(N1, X1, Y1, N2, X2, Y2, L)).         /* otherwise verify that the climb is on correct numbers */
 
-checkInsideBoard(X1, Y1, X2, Y2) :- check1InsideBoard(X1) , check1InsideBoard(Y1) , check1InsideBoard(X2) , check1InsideBoard(Y2).
+/* predicate used to check if the piece is inside the board */
+checkInsideBoard(X1, Y1, X2, Y2) :- 
+        check1InsideBoard(X1) ,                                 /* simply check each coordinate */
+        check1InsideBoard(Y1) , 
+        check1InsideBoard(X2) , 
+        check1InsideBoard(Y2).
 
+/* predicate used to check if a given coordinate is inside the board */
 check1InsideBoard(Z) :- Z < 1 -> fail ; (Z > 18 -> fail ; true).
 
+/* predicate used to check if the piece belongs to the player and has not been played */
 checkPlayerPiece(N1, N2, I) :- piece(N1, N2, I, 0).
 
+/* predicate used to check if the other half has the same level */
 checkLevelStable(L, X2, Y2) :- getTopLevel(X2, Y2, L).
 
+/* predicate used to check if the numbers for a climb placemente are correct */
 checkClimbNumbers(N1, X1, Y1, N2, X2, Y2, L) :- halfPiece(X1, Y1, L, N1, _) , halfPiece(X2, Y2, L, N2, _).
 
-checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2) :- checkHalfOrthogonal(X1, Y1, C1) ; checkHalfOrthogonal(X2, Y2, C2).
+/* predicate used to check if the expand placement is orthogonal to some piece on the board */
+checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2) :- 
+        checkHalfOrthogonal(X1, Y1, C1) ;                       /* succeeds if at least one half has an orthogonal piece */
+        checkHalfOrthogonal(X2, Y2, C2).
 
-checkHalfOrthogonal(X, Y, C) :- checkNorthOrthogonal(X, Y, C) ; checkEastOrthogonal(X, Y, C) ; checkSouthOrthogonal(X, Y, C) ; checkWestOrthogonal(X, Y, C).
+/* predicate used to check if a piece half has an orthogonal on the board */
+checkHalfOrthogonal(X, Y, C) :- 
+        checkNorthOrthogonal(X, Y, C) ;                         /* succeeds if at least one cardinal has an orthogonal piece*/
+        checkEastOrthogonal(X, Y, C) ; 
+        checkSouthOrthogonal(X, Y, C) ; 
+        checkWestOrthogonal(X, Y, C).
 
-checkNorthOrthogonal(X, Y, C) :- X1 is X - 1 , (member(C, [e, w]) -> halfPiece(X1, Y, 1, _, n) ;
-                                                (C == s -> (halfPiece(X1, Y, 1, _, e) ; halfPiece(X1, Y, 1, _, w)) ; fail)).
+/* predicate used to check if a piece half has an orthogonal on the North */
+checkNorthOrthogonal(X, Y, C) :-
+        X1 is X - 1 ,                                           /* North line is this line minus 1 */
+        (member(C, [e, w]) ->                                   /* if C is East or West */
+         halfPiece(X1, Y, 1, _, n) ;                            /* North half piece must have cardinal North */
+         (C == s ->                                             /* alternatively, if C is South */
+          (halfPiece(X1, Y, 1, _, e) ;                          /* North half piece can have cardinal East */
+           halfPiece(X1, Y, 1, _, w))                           /* or West */
+         ; fail)).                                              /* in all other cases, fail */
 
-checkEastOrthogonal(X, Y, C) :- Y1 is Y + 1 , (member(C, [s, n]) -> halfPiece(X, Y1, 1, _, e) ;
-                                               (C == w -> (halfPiece(X, Y1, 1, _, n) ; halfPiece(X, Y1, 1, _, s)) ; fail)).
+/* predicate used to check if a piece half has an orthogonal on the East */
+checkEastOrthogonal(X, Y, C) :-                                 /* very similar to North case */
+        Y1 is Y + 1 , 
+        (member(C, [s, n]) -> 
+         halfPiece(X, Y1, 1, _, e) ;
+         (C == w -> 
+          (halfPiece(X, Y1, 1, _, n) ; 
+           halfPiece(X, Y1, 1, _, s)) ; 
+          fail)).
 
-checkSouthOrthogonal(X, Y, C) :- X1 is X + 1 , (member(C, [w, e]) -> halfPiece(X1, Y, 1, _, s) ;
-                                                (C == n -> (halfPiece(X1, Y, 1, _, e) ; halfPiece(X1, Y, 1, _, w)) ; fail)).
+/* predicate used to check if a piece half has an orthogonal on the South */
+checkSouthOrthogonal(X, Y, C) :-                                /* very similar to North case */
+        X1 is X + 1 , 
+        (member(C, [w, e]) -> 
+         halfPiece(X1, Y, 1, _, s) ;
+         (C == n -> 
+          (halfPiece(X1, Y, 1, _, e) ; 
+           halfPiece(X1, Y, 1, _, w)) ; 
+          fail)).
 
-checkWestOrthogonal(X, Y, C) :- Y1 is Y - 1 , (member(C, [n, s]) -> halfPiece(X, Y1, 1, _, w) ;
-                                               (C == e -> (halfPiece(X, Y1, 1, _, n) ; halfPiece(X, Y1, 1, _, s)) ; fail)).
+/* predicate used to check if a piece half has an orthogonal on the West */
+checkWestOrthogonal(X, Y, C) :-                                 /* very similar to North case */
+        Y1 is Y - 1 , 
+        (member(C, [n, s]) -> 
+         halfPiece(X, Y1, 1, _, w) ;
+         (C == e -> 
+          (halfPiece(X, Y1, 1, _, n) ; 
+           halfPiece(X, Y1, 1, _, s)) ; 
+          fail)).
 
-checkNoClimbs(I) :- getClimbPlays(I, Plays) , length(Plays, Length) , Length == 0.
+/* predicate used to check if a player has no more climb moves */
+checkNoClimbs(I) :-                                             
+        getClimbPlays(I, Plays) ,                               /* compute all climb plays for player */
+        length(Plays, Length) ,                                 /* obtain the number of climb plays */
+        Length == 0.                                            /* if it is 0, there are no more climb plays */
 
+/* fixed plays to used in test phase, no longer needed for game to run */
 testPlay :- playFirstPiece ,
         playPiece(2, 4, 2, 11, 10, n, _) ,
         playPiece(3, 3, 1, 12, 10, e, _) ,
@@ -116,6 +201,7 @@ testPlay :- playFirstPiece ,
         playPiece(2, 5, 2, 11, 10, e, _) ,
         playPiece(6, 6, 2, 11, 13, s, _) .
 
+/* fixed game start with distribution and plays used in test phase, no longer needed for game to run */
 test :- testDistribute , testPlay , assert(player(1, 'Angie', 1)) , assert(player(2, 'Nuno', 1)).
 
 
@@ -123,55 +209,153 @@ test :- testDistribute , testPlay , assert(player(1, 'Angie', 1)) , assert(playe
 /* game engine */
 /***************/
 
-numberPieces(I, NP, N1, N2, R) :- N1 > 7 -> R is NP ; (N2 > 7 -> (N21 is N1 + 1 , N11 is N1 + 1 , numberPieces(I, NP, N11, N21, R)) ; 
-                                              (piece(N1, N2, I, 0) -> (NP1 is NP + 1 , N21 is N2 + 1, numberPieces(I, NP1, N1, N21, R)) ; 
-                                               (N21 is N2 + 1 , numberPieces(I, NP, N1, N21, R)))).
+/* predicate used to count the number of pieces of a given player */
+numberPieces(I, NP, N1, N2, R) :-                               /* R is the result output, NP, N1 and N2 should be 0 */
+        N1 > 7 -> R is NP ;                                     /* if N1 > 7, we have the result */
+        (N2 > 7 ->                                              /* if N2 > 7, advance to the next piece */
+         (N21 is N1 + 1 ,                                       /* which is N1 + 1 │ N1 + 1*/
+          N11 is N1 + 1 , 
+          numberPieces(I, NP, N11, N21, R)) ;                   /* continue recursively */
+         (piece(N1, N2, I, 0) ->                                /* otherwise, check if the piece belongs to the player and has not been played */
+          (NP1 is NP + 1 ,                                      /* if so, the number of pieces must be increased */
+           N21 is N2 + 1,                                       /* we advance to the next piece */
+           numberPieces(I, NP1, N1, N21, R)) ;                  /* and continue recursively */
+          (N21 is N2 + 1 ,                                      /* if not, simply advance to the next piece */
+           numberPieces(I, NP, N1, N21, R)))).                  /* and continue recursively, without incrementing the number of pieces */
 
-checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (cls , printBoard , write('Game Over: ') , player(1, S, _) , print(S) , write(' wins!') , nl , nl , sleep(1) , fail) ; 
-                                                (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (cls , printBoard , write('Game Over: ') , player(2, S, _) , print(S) , write(' wins!') , nl , nl , sleep(1) , fail) ; true))).
+/* predicate used to check if the game is over */
+checkGameOver :-                                                /* the name is misleading, fails if game over, suceeds otherwise */
+        numberPieces(1, 0, 0, 0, R1) ,                          /* get number of pieces of player 1 */
+        (R1 == 0 ->                                             /* if player 1 has 0 pieces */
+         (printGameOver(1), fail) ;                             /* player 1 has won, print that and fail */
+         (numberPieces(2, 0, 0, 0, R2),                         /* otherwise, get number of pieces of player 2 */      
+          (R2 == 0 ->                                           /* if player 2 has 0 pieces */   
+           (printGameOver(2) , fail) ;                          /* player 2 has won, print that and fail */ 
+           true))).                                             /* otherwise the game continues */
 
-playFirstPiece :- assert(halfPiece(9, 9, 1, 7, e)), assert(halfPiece(9, 10, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
+/* predicate used to play the first piece in the game */
+playFirstPiece :-                                               /* the first piece is always 7 │ 7 and must be played in the middle of the board */
+        assert(halfPiece(9, 9, 1, 7, e)),                       
+        assert(halfPiece(9, 10, 1, 7, w)), 
+        retract(piece(7, 7, 1, 0)) , 
+        assert(piece(7, 7, 1, 1)).
 
-playGame :- distributePieces(0, 0, 0, 0) , playFirstPiece , assert(turn(2)) , playTurn.
+/* predicate used to play the game */
+playGame :-                             
+        distributePieces(0, 0, 0, 0) ,                          /* first distribute the pieces among the players */
+        playFirstPiece ,                                        /* then play the first piece */
+        assert(turn(2)) ,                                       /* the next player is player 2 */
+        playTurn.                                               /* play the next turn */
 
-playTurn :- checkGameOver -> (turn(I) , player(I, _, T) , 
-                              (T == 1 -> (printGame(I) , getMove(I, N1, N2, X1, Y1, C1) , 
-                                          (playPiece(N1, N2, I, X1, Y1, C1, L) -> (nextPlayer(I, L) , playTurn) ; 
-                                           (write('Invalid movement.') , sleep(1) , playTurn))) ;
-                               (T == 2 -> (I1 is 3 - I , printGame(I1) , nl , write('Computer thinking...') , sleep(1) , playRandom(I) , changeTurn(I) , playTurn) ; 
-                                (I1 is 3 - I , printGame(I1) , nl , write('Computer thinking...') , playBest(I), changeTurn(I) , playTurn)))) ; !.
+/* predicate used to play a turn */
+playTurn :-                                                     /* when the player is human, more than one recursive call is needed to play a full turn */
+        checkGameOver ->                                        /* check if the game is not over and continue if it is not */
+        (turn(I) ,                                              /* check whose turn it is */
+         player(I, _, T) ,                                      /* obtain the type of player whose turn it is */
+         (T == 1 ->                                             /* if player is human */
+          (printGame(I) ,                                       /* print board and pieces */
+           getMove(I, N1, N2, X1, Y1, C1) ,                     /* ask the player for the next move */
+           (playPiece(N1, N2, I, X1, Y1, C1, L) ->              /* try to play the piece */
+            (nextPlayer(I, L) ,                                 /* determine who is the next player (this player's turn may not be over) */
+             playTurn) ;                                        /* recursively resume playing with whomever is next */
+            (write('Invalid movement.') , sleep(1) ,            /* if the move is not valid, say so */
+             playTurn))) ;                                      /* and recursively resume with the same player */
+          (T == 2 ->                                            /* if the player is the computer on easy mode */
+           (I1 is 3 - I ,                                       /* obtain the number of the other player */
+            printGame(I1) , nl ,                                /* and print their board and pieces */
+            player(I1, _, T1) ,                                 /* compute also their type */
+            (T1 > 1 ->                                          /* if they are not human, then the game is computer vs computer */
+             getNewLine ;                                       /* wait for the person running the game to press enter */
+             (write('Computer thinking...') , sleep(1))) ,      /* if the other player is human, tell them the computer is thinking */
+            playRandom(I) ,                                     /* in any case, compute a sequence of random computer movements */
+            changeTurn(I) , playTurn) ;                         /* change player turn and resume playing recursively */
+           (I1 is 3 - I ,                                       /* if the computer is on hard mode, obtain the number of the other player */                           
+            printGame(I1) , nl ,                                /* and print their board and pieces */                                
+            player(I1, _, T1) ,                                 /* compute also their type */                                         
+            (T1 > 1 ->                                          /* if they are not human, then the game is computer vs computer */    
+             getNewLine ;                                       /* wait for the person running the game to press enter */             
+             (write('Computer thinking...'))) ,                 /* if the other player is human, tell them the computer is thinking */
+            playBest(I),                                        /* in any case, compute a sequence of greedy computer movements */    
+            changeTurn(I) , playTurn)))) ; !.                   /* change player turn and resume playing recursively */               
 
-getMove(I, N1, N2, X1, Y1, C1) :- nl , getContinue , getN1(I, N1) , getN2(I, N1, N2) , getX1(X1) , getY1(Y1) , getC1(C1).
+/* predicate used to ask the human player for the next move */
+getMove(I, N1, N2, X1, Y1, C1) :- 
+        nl , getContinue ,                                      /* first check if the player wishes to continue playing or wants to save and exit */
+        getN1(I, N1) ,                                          /* get the first number of the piece */
+        getN2(I, N1, N2) ,                                      /* get the second number of the piece */
+        getX1(X1) ,                                             /* get the line */
+        getY1(Y1) ,                                             /* get the column */
+        getC1(C1).                                              /* get the orientation */
 
-getContinue :- prompt(_, 'Continue - enter , Save and exit - s: ') , getChar(C) , (C == 's' -> save_game ; ! ).
+/* predicate used to check if the player wishes to continue playing or wants to save and exit */
+getContinue :- 
+        prompt(_, 'Continue - enter , Save and exit - s: ') ,   /* ask the question */
+        getChar(C) ,                                            /* get the answer */
+        (C == 's' -> save_game ; ! ).                           /* if answer is s, save and quit, otherwise continue playing */
 
-getN1(I, N1) :- prompt(_, 'Piece left number: ') , getDigit(N1t) ,
-        (piece(N1t, _, I, 0) -> N1 is N1t ; 
-         (write('You have no piece ') , print(N1t) , write(' │ ? .') , nl ,  getN1(I, N1))).
+/* predicate used to obtain the first number of the piece */
+getN1(I, N1) :- 
+        prompt(_, 'Piece left number: ') ,                      /* ask for a number */
+        getDigit(N1t) ,                                         /* get the single digit */
+        (piece(N1t, _, I, 0) -> N1 is N1t ;                     /* if there is such a numbered piece, return the number */
+         (write('You have no piece ') ,                         /* otherwise inform the player that there is */
+          print(N1t) , write(' │ ? .') , nl ,                   /* no such piece */
+          getN1(I, N1))).                                       /* and ask for a new number */
 
-getN2(I, N1, N2) :- prompt(_, 'Piece right number: ') , getDigit(N2t) , 
+/* predicate used to obtain the second number of the piece */
+getN2(I, N1, N2) :-                                             /* very similar to the one used to obtain the first number */
+        prompt(_, 'Piece right number: ') , 
+        getDigit(N2t) , 
         (piece(N1, N2t, I, 0) -> N2 is N2t ; 
-         (write('You have no piece ') , print(N1) , write(' │ ') , print(N2t) , write(' .') , nl , getN2(I, N1, N2))). 
+         (write('You have no piece ') , 
+          print(N1) , write(' │ ') , print(N2t) , write(' .') , nl , 
+          getN2(I, N1, N2))). 
 
-getX1(X1) :- prompt(_, 'Line for left number (1 - 18): ') , getDoubleDigit(X1t) , 
-        (X1t < 1 -> (write('Line number must be at least 1.') , nl ,  getX1(X1)) ;
-         (X1t > 18 -> (write('Line number must be at most 18.') , nl , getX1(X1)) ;
-          X1 is X1t)).
+/* predicate used to obtain the line of the board */
+getX1(X1) :- 
+        prompt(_, 'Line for left number (1 - 18): ') ,          /* ask for the line */
+        getDoubleDigit(X1t) ,                                   /* get possible double digit */
+        (X1t < 1 ->                                             /* if it is below 1 */
+         (write('Line number must be at least 1.') , nl ,       /* complain to the player */
+          getX1(X1)) ;                                          /* and ask for a new number */
+         (X1t > 18 ->                                           /* if if is above 18 */
+          (write('Line number must be at most 18.') , nl ,      /* complain to the player */
+           getX1(X1)) ;                                         /* and ask for a new number */
+          X1 is X1t)).                                          /* otherwise return the number */
 
-getY1(Y1) :- prompt(_, 'Column for left number (1 - 18): ') , getDoubleDigit(Y1t) , 
-        (Y1t < 1 -> (write('Column number must be at least 1.') , nl , getY1(Y1)) ;
-         (Y1t > 18 -> (write('Column number must be at most 18.') , nl , getY1(Y1)) ;
+/* predicate used to obtain the column of the board */
+getY1(Y1) :-                                                    /* very similar to the one used to obtain the line */
+        prompt(_, 'Column for left number (1 - 18): ') , 
+        getDoubleDigit(Y1t) , 
+        (Y1t < 1 -> 
+         (write('Column number must be at least 1.') , nl , 
+          getY1(Y1)) ;
+         (Y1t > 18 -> 
+          (write('Column number must be at most 18.') , nl , 
+           getY1(Y1)) ;
           Y1 is Y1t)).
 
-getC1(C1) :- prompt(_, 'Cardinal of right number relative to left number (n, e, s, w): ') , getChar(C1t) ,
-        (member(C1t, [n, e, s, w]) -> copy_term(C1t, C1) ; 
-         (write('Cardinal must be one of: n, e, s, w.'), nl , getC1(C1))).
+/* predicate used to obtain the orientation of the piece */
+getC1(C1) :- 
+        prompt(_, 'Cardinal of right number relative to left number (n, e, s, w): ') , /* ask for the cardinal */
+        getChar(C1t) ,                                          /* get the char */
+        (member(C1t, [n, e, s, w]) -> copy_term(C1t, C1) ;      /* if it is valid, return it */
+         (write('Cardinal must be one of: n, e, s, w.'), nl ,   /* otherwise complain */
+          getC1(C1))).                                          /* and get a new one */
 
 :- dynamic turn/1.
+/* predicate turn is used to ensure the next turn is given to the right player */
 
-changeTurn(I) :- I1 is 3 - I , retract(turn(I)) , assert(turn(I1)).
+/* predicate used to move the turn to the next player */
+changeTurn(I) :- 
+        I1 is 3 - I ,                                           /* if the current player is I, the next is 3 - I */
+        retract(turn(I)) ,                                      /* player I is no longer playing */
+        assert(turn(I1)).                                       /* now it's player's 3 - I turn*/
 
-nextPlayer(I, L) :- L == 0 -> changeTurn(I) ; !.
+/* predicate used to check if the turn of a human player has ended */
+nextPlayer(I, L) :- 
+        L == 0 ->                                               /* the turn ends after an expand movement */
+        changeTurn(I) ; !.                                      /* that is, movement with level L = 0 */
 
 
 /**************************/
@@ -179,57 +363,144 @@ nextPlayer(I, L) :- L == 0 -> changeTurn(I) ; !.
 /**************************/
 
 :- dynamic position/2.
+/* a position on the board with its line and column */
 
-getPositions(X, Y) :- X > 18 -> ! ; 
-                      (Y > 18 -> (Y1 is 1 , X1 is X + 1 , getPositions(X1, Y1)) ;
-                       (assert(position(X, Y)), Y1 is Y + 1, getPositions(X, Y1))).
-:- getPositions(1, 1).
+/* predicate used to compute all possible board positions */
+getPositions(X, Y) :-                                           
+        X > 18 -> ! ;                                           /* if the line is above 18, stop */
+        (Y > 18 ->                                              /* if the column is above 18 */
+         (Y1 is 1 , X1 is X + 1 ,                               /* move on to the first column of the next line */
+          getPositions(X1, Y1)) ;                               /* and proceed recursively */
+         (assert(position(X, Y)),                               /* otherwise, this is a valid position, add it to the database */
+          Y1 is Y + 1,                                          /* and move on to the next cell */
+          getPositions(X, Y1))).                                /* calling the function recursively */
 
-checkClimb(N1, N2, I, X1, Y1, C1) :- checkPlayerPiece(N1, N2, I) , getTopLevel(X1, Y1, L) , getOtherHalf(X1, Y1, C1, X2, Y2, _) , 
-        checkInsideBoard(X1, Y1, X2, Y2) , checkLevelStable(L, X2, Y2) , checkClimbNumbers(N1, X1, Y1, N2, X2, Y2, L).
+/* add all valid positions to the database so that findall can find possible movements */
+:- getPositions(1, 1).                                          
 
-checkExpand(N1, N2, I, X1, Y1, C1) :- checkPlayerPiece(N1, N2, I) , position(X1, Y1), getOtherHalf(X1, Y1, C1, X2, Y2, C2) , 
-        checkInsideBoard(X1, Y1, X2, Y2) , checkLevelStable(0, X1, Y1), checkLevelStable(0, X2, Y2) , checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2).
+/* predicate used to check if a climb movement is valid */
+/* this is very similar to checkPlay above, but only for climbs, and works with findall */
+checkClimb(N1, N2, I, X1, Y1, C1) :-                            
+        checkPlayerPiece(N1, N2, I) ,                           /* check if the piece belongs to the player and has not been played */
+        getTopLevel(X1, Y1, L) ,                                /* obtain the current level of the position on the board */
+        getOtherHalf(X1, Y1, C1, X2, Y2, _) ,                   /* obtain the position of the other half of the piece */
+        checkInsideBoard(X1, Y1, X2, Y2) ,                      /* verify that the whole piece is inside the board */
+        checkLevelStable(L, X2, Y2) ,                           /* verify that the level of both halfs is the same */
+        checkClimbNumbers(N1, X1, Y1, N2, X2, Y2, L).           /* check that the numbers are correct for climbing */
 
-getClimbPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1), checkClimb(N1, N2, I, X1, Y1, C1), Plays).
+/* predicate used to check if an expand movement is valid */
+/* this is very similar to checkPlay above, but only for expand, and works with findall */
+checkExpand(N1, N2, I, X1, Y1, C1) :- 
+        checkPlayerPiece(N1, N2, I) ,                           /* check if the piece belongs to the player and has not been played */
+        position(X1, Y1),                                       /* verify that X1, Y1 is a valid board position */
+        getOtherHalf(X1, Y1, C1, X2, Y2, C2) ,                  /* obtain the position of the other half of the piece */ 
+        checkInsideBoard(X1, Y1, X2, Y2) ,                      /* verify that the whole piece is inside the board */    
+        checkLevelStable(0, X1, Y1),                            /* verify that the level of both halfs is the 0 */    
+        checkLevelStable(0, X2, Y2) , 
+        checkExpandOrthogonal(X1, Y1, C1, X2, Y2, C2).          /* check that there is some other piece on the board orthogonal to this one */
 
-randomClimbPlay(I) :- getClimbPlays(I, Plays) , random_member(play(N1, N2, I, X1, Y1, C1), Plays) , playPiece(N1, N2, I, X1, Y1, C1, _).
+/* predicate used to obtain a list of all possible climb movements for a player */
+getClimbPlays(I, Plays) :- 
+        findall(play(N1, N2, I, X1, Y1, C1), checkClimb(N1, N2, I, X1, Y1, C1), Plays).
 
-getExpandPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1), checkExpand(N1, N2, I, X1, Y1, C1), Plays).
+/* predicate used play a random climb movement */
+randomClimbPlay(I) :- 
+        getClimbPlays(I, Plays) , 
+        random_member(play(N1, N2, I, X1, Y1, C1), Plays) , 
+        playPiece(N1, N2, I, X1, Y1, C1, _).
 
-randomExpandPlay(I) :- getExpandPlays(I, Plays) , random_member(play(N1, N2, I, X1, Y1, C1), Plays) , playPiece(N1, N2, I, X1, Y1, C1, _).
+/* predicate used to obtain a list of all possible expand movements for a player */
+getExpandPlays(I, Plays) :- 
+        findall(play(N1, N2, I, X1, Y1, C1), checkExpand(N1, N2, I, X1, Y1, C1), Plays).
 
-playRandom(I) :- randomClimbPlay(I) -> playRandom(I) ; randomExpandPlay(I).
+/* predicate used play a random expand movement */
+randomExpandPlay(I) :- 
+        getExpandPlays(I, Plays) , 
+        random_member(play(N1, N2, I, X1, Y1, C1), Plays) , 
+        playPiece(N1, N2, I, X1, Y1, C1, _).
 
-evaluateSituation(I, R) :- getNumberPlays(I, Rme) , I1 is 3 - I , getNumberPlays(I1 , Ryou) , R is Rme - Ryou.
+/* predicate used play a random turn */
+playRandom(I) :- 
+        randomClimbPlay(I) ->                                   /* while there are valid climbs */
+        playRandom(I) ;                                         /* do random climbs */
+        randomExpandPlay(I).                                    /* afterward do one expand */
 
-getNumberPlays(I, R) :- getClimbPlays(I, Plays), length(Plays, S) , R is S + 1.
+/* predicate used to evalute the current situation of the game for a given player */
+evaluateSituation(I, R) :-                                      /* R is the result, bigger R means better for player I */
+        getNumberPlays(I, Rme) ,                                /* compute the number of pieces player I can play */
+        I1 is 3 - I ,                                           /* I1 is the other player */
+        getNumberPlays(I1 , Ryou) ,                             /* compute the number of pieces the other player can play */
+        R is Rme - Ryou.                                        /* the result is the difference */
 
-playPieceNoCheck(N1, N2, I, X1, Y1, C1, L) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L) , L1 is L + 1 , 
-        assert(halfPiece(X1, Y1, L1, N1, C1)) , assert(halfPiece(X2, Y2, L1, N2, C2)) , retract(piece(N1, N2, I, 0)) , assert(piece(N1, N2, I, 1)).
+/* predicate used to compute the maximum number of plays for a given player*/
+getNumberPlays(I, R) :- 
+        getClimbPlays(I, Plays),                                /* get list of all climbs */
+        length(Plays, S) ,                                      /* compute maximum number of climbs */
+        R is S + 1.                                             /* the result is the number of climbs plus 1, because there is always 1 expand */
 
-removePiece(N1, N2, I, X1, Y1, C1, L) :- getOtherHalf(X1, Y1, C1, X2, Y2, C2) , getTopLevel(X1, Y1, L) , 
-        retract(halfPiece(X1, Y1, L, N1, C1)) , retract(halfPiece(X2, Y2, L, N2, C2)) , assert(piece(N1, N2, I, 0)) , retract(piece(N1, N2, I, 1)).
+/* predicate used to play a piece without checking it is valid */
+playPieceNoCheck(N1, N2, I, X1, Y1, C1, L) :-                   /* very similar to playPiece, but faster */
+        getOtherHalf(X1, Y1, C1, X2, Y2, C2) , 
+        getTopLevel(X1, Y1, L) , L1 is L + 1 , 
+        assert(halfPiece(X1, Y1, L1, N1, C1)) , 
+        assert(halfPiece(X2, Y2, L1, N2, C2)) , 
+        retract(piece(N1, N2, I, 0)) , 
+        assert(piece(N1, N2, I, 1)).
 
-evaluateClimb(N1, N2, I, X1, Y1, C1, R) :- checkClimb(N1, N2, I, X1, Y1, C1) , playPieceNoCheck(N1, N2, I, X1, Y1, C1, _) , 
-        evaluateSituation(I, R) , removePiece(N1, N2, I, X1, Y1, C1, _).
+/* predicate used to remove a piece from the board */
+removePiece(N1, N2, I, X1, Y1, C1, L) :-                        /* does the opposite of playPieceNoCheck */
+        getOtherHalf(X1, Y1, C1, X2, Y2, C2) , 
+        getTopLevel(X1, Y1, L) , 
+        retract(halfPiece(X1, Y1, L, N1, C1)) , 
+        retract(halfPiece(X2, Y2, L, N2, C2)) , 
+        assert(piece(N1, N2, I, 0)) , 
+        retract(piece(N1, N2, I, 1)).
 
-evaluateExpand(N1, N2, I, X1, Y1, C1, R) :- checkExpand(N1, N2, I, X1, Y1, C1) , playPieceNoCheck(N1, N2, I, X1, Y1, C1, _) , 
-        evaluateSituation(I, R) , removePiece(N1, N2, I, X1, Y1, C1, _).
+/* predicate used to evaluate how good a given climb is */
+evaluateClimb(N1, N2, I, X1, Y1, C1, R) :-                      /* R is the result, bigger R means better climb */
+        checkClimb(N1, N2, I, X1, Y1, C1) ,                     /* first check if the climb is valid */
+        playPieceNoCheck(N1, N2, I, X1, Y1, C1, _) ,            /* then play it */
+        evaluateSituation(I, R) ,                               /* then evaluate the current situation */
+        removePiece(N1, N2, I, X1, Y1, C1, _).                  /* then remove the played piece */
 
-evaluateClimbPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1, R), evaluateClimb(N1, N2, I, X1, Y1, C1, R), Plays).
+/* predicate used to evaluate how good a given expand is */
+evaluateExpand(N1, N2, I, X1, Y1, C1, R) :-                     /* very similar to evaluateClimb */
+        checkExpand(N1, N2, I, X1, Y1, C1) , 
+        playPieceNoCheck(N1, N2, I, X1, Y1, C1, _) , 
+        evaluateSituation(I, R) , 
+        removePiece(N1, N2, I, X1, Y1, C1, _).
 
-evaluateExpandPlays(I, Plays) :- findall(play(N1, N2, I, X1, Y1, C1, R), evaluateExpand(N1, N2, I, X1, Y1, C1, R), Plays).
+/* predicate used to obtain a list of all climb plays evaluated */
+evaluateClimbPlays(I, Plays) :- 
+        findall(play(N1, N2, I, X1, Y1, C1, R), evaluateClimb(N1, N2, I, X1, Y1, C1, R), Plays).
 
-bestPlay([], _) :- fail.
-bestPlay([Play|Plays], MPlay) :- bestPlay(Plays, Play, MPlay).
-bestPlay([], play(N1, N2, I, X1, Y1, C1, R), play(N1, N2, I, X1, Y1, C1, R)).
+/* predicate used to obtain a list of all expand plays evaluated */
+evaluateExpandPlays(I, Plays) :- 
+        findall(play(N1, N2, I, X1, Y1, C1, R), evaluateExpand(N1, N2, I, X1, Y1, C1, R), Plays).
+
+/* predicate used to choose the best play from a list */
+/* very similar to predicates used to choose maximum from a list */
+bestPlay([], _) :- fail.                                        /* if the list is empty fail */
+bestPlay([Play|Plays], MPlay) :-                                /* go from 2 arguments to 3 */
+        bestPlay(Plays, Play, MPlay).
+bestPlay([], play(N1, N2, I, X1, Y1, C1, R), play(N1, N2, I, X1, Y1, C1, R)). /* between empty list and one play, choose one play */
 bestPlay([play(N11, N21, I1, X11, Y11, C11, R1)|Plays] , play(N12, N22, I2, X12, Y12, C12, R2) , play(MN1, MN2, MI, MX1, MY1, MC1, MR)) :- 
-        (R1 > R2 -> bestPlay(Plays, play(N11, N21, I1, X11, Y11, C11, R1), play(MN1, MN2, MI, MX1, MY1, MC1, MR)) ;
+        (R1 > R2 ->                                                                                      /* check with play has bigger value */
+         bestPlay(Plays, play(N11, N21, I1, X11, Y11, C11, R1), play(MN1, MN2, MI, MX1, MY1, MC1, MR)) ; /* proceed in the list with that play */
          bestPlay(Plays, play(N12, N22, I2, X12, Y12, C12, R2), play(MN1, MN2, MI, MX1, MY1, MC1, MR))).
 
-bestClimbPlay(I) :- evaluateClimbPlays(I, Plays) , bestPlay(Plays, play(N1, N2, I, X1, Y1, C1, _)) , playPiece(N1, N2, I, X1, Y1, C1, _).
+/* predicate used to play one of the best climb plays available */
+bestClimbPlay(I) :- 
+        evaluateClimbPlays(I, Plays) , 
+        bestPlay(Plays, play(N1, N2, I, X1, Y1, C1, _)) , 
+        playPiece(N1, N2, I, X1, Y1, C1, _).
 
-bestExpandPlay(I) :- evaluateExpandPlays(I, Plays) , bestPlay(Plays, play(N1, N2, I, X1, Y1, C1, _)) , playPiece(N1, N2, I, X1, Y1, C1, _).
+/* predicate used to play one of the best expand plays available */
+/* since there are usually many expand plays available, this is the slowest function taking a few seconds to finish */
+bestExpandPlay(I) :- 
+        evaluateExpandPlays(I, Plays) , 
+        bestPlay(Plays, play(N1, N2, I, X1, Y1, C1, _)) , 
+        playPiece(N1, N2, I, X1, Y1, C1, _).
 
+/* predicate used play a greedy turn, always choosing one of the best available plays */
 playBest(I) :- bestClimbPlay(I) -> playBest(I) ; bestExpandPlay(I).
