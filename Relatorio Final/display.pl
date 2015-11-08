@@ -70,12 +70,12 @@ printRightNumbers(X) :-
          (print(X))).
 
 /* predicate used to print the top of the board grid */
-printGridTop :- write('                ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
+printGridTop :- write('                ─────────────────────────────────────────────────────────────────────────').
 
 /* predicate used to print the board grid */
 printGrid(X) :-((X < 18 ,                               /* the last row is different */
-                write('                ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤')) ;
-                write('                └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')).
+                write('                ─────────────────────────────────────────────────────────────────────────')) ;
+                write('                ─────────────────────────────────────────────────────────────────────────')).
 
 
 /****************/
@@ -149,7 +149,7 @@ printPieces(I, C, R, N1T, N2T, N1N, N2N, N1B, N2B) :-
 /* predicate used to print a piece's top */
 printPieceTop(P) :- 
         P == 0 ->                                       /* if the piece has not been played */
-        write(' ┌───┬───┐') ;                           /* print top */
+        write(' ─────────') ;                           /* print top */
         write('          ').                            /* otherwise print spaces */
 
 /* predicate used to print a piece's numbers */
@@ -165,7 +165,7 @@ printPieceNumber(N1, N2, P) :-
 /* predicate used to print a piece's bottom */
 printPieceBottom(P) :-                                  /* very similar to the printPieceTop */
         P == 0 -> 
-        write(' └───┴───┘') ; 
+        write(' ─────────') ; 
         write('          ').
 
 
