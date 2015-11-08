@@ -11,6 +11,7 @@
 :-consult(display).
 :-consult(dominup).
 
+
 /****************/
 /* useful stuff */
 /****************/
@@ -75,13 +76,14 @@ playerNames(CHOption, EHOption) :- CHOption == 1 ->
 save_game :- prompt(_, 'File name: ') , getString(S) , save_program(S) , break.
 
 load_game :- prompt(_, 'File name: ') , getString(S) , atom_concat(S, '.sav', Ssav) , 
-        (file_exists(Ssav, exist) -> (restore(S) , playTurn) ; 
+        (file_exists(Ssav, exist) -> restore(S) ; 
          (print(S) , write(' is not a valid save file') , nl , load_game)).
       
-startGame :- cls , nl , write('Welcome to Dominup!!!') , nl , nl , newOrLoad(NLOption) , 
-        (NLOption == 1 -> (computerOrHuman(CHOption) ,
-                           (CHOption == 1 -> (easyOrHard(EHOptiont) , EHOption is EHOptiont + 1 , playerNames(CHOption, EHOption)) ;
-                            playerNames(CHOption, _)) , sleep(1) , playGame) ;
-         load_game).
+startGame :- player(1, _, _) -> playTurn ;
+             (cls , nl , write('Welcome to Dominup!!!') , nl , nl , newOrLoad(NLOption) , 
+              (NLOption == 1 -> (computerOrHuman(CHOption) ,
+                                 (CHOption == 1 -> (easyOrHard(EHOptiont) , EHOption is EHOptiont + 1 , playerNames(CHOption, EHOption)) ;
+                                  playerNames(CHOption, _)) , sleep(1) , playGame) ;
+               load_game)).
 
 :- initialization(startGame).

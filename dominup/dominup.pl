@@ -116,30 +116,7 @@ testPlay :- playFirstPiece ,
         playPiece(2, 5, 2, 11, 10, e, _) ,
         playPiece(6, 6, 2, 11, 13, s, _) .
 
-test :- testDistribute , testPlay.
-
-/*
-halfPiece(12, 12, 1, 7, e).
-halfPiece(12, 13, 1, 7, w).
-halfPiece(12, 11, 1, 1, s).
-halfPiece(13, 11, 1, 1, n).
-halfPiece(13, 13, 2, 4, n).
-halfPiece(12, 13, 2, 7, s).
-halfPiece(14, 13, 1, 2, n).
-halfPiece(13, 13, 1, 4, s).
-halfPiece(15, 13, 1, 3, e).
-halfPiece(15, 14, 1, 3, w).
-halfPiece(14, 13, 2, 2, s).
-halfPiece(15, 13, 2, 3, n).
-halfPiece(15, 14, 2, 3, n).
-halfPiece(14, 14, 2, 5, s).
-halfPiece(14, 13, 3, 2, e).
-halfPiece(14, 14, 3, 5, w).
-halfPiece(14, 15, 1, 0, w).
-halfPiece(14, 14, 1, 5, e).
-halfPiece(14, 16, 1, 6, s).
-halfPiece(15, 16, 1, 6, n).
-*/
+test :- testDistribute , testPlay , assert(player(1, 'Angie', 1)) , assert(player(2, 'Nuno', 1)).
 
 
 /***************/
@@ -150,8 +127,8 @@ numberPieces(I, NP, N1, N2, R) :- N1 > 7 -> R is NP ; (N2 > 7 -> (N21 is N1 + 1 
                                               (piece(N1, N2, I, 0) -> (NP1 is NP + 1 , N21 is N2 + 1, numberPieces(I, NP1, N1, N21, R)) ; 
                                                (N21 is N2 + 1 , numberPieces(I, NP, N1, N21, R)))).
 
-checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (printBoard , write('Game Over: ') , printPlayerName(1) , write(' wins!') , nl , sleep(1) , fail) ; 
-                                                (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (printBoard , write('Game Over: ') , printPlayerName(2) , nl , sleep(1) , fail) ; true))).
+checkGameOver :- numberPieces(1, 0, 0, 0, R1), (R1 == 0 -> (cls , printBoard , write('Game Over: ') , player(1, S, _) , print(S) , write(' wins!') , nl , nl , sleep(1) , fail) ; 
+                                                (numberPieces(2, 0, 0, 0, R2), (R2 == 0 -> (cls , printBoard , write('Game Over: ') , player(2, S, _) , print(S) , write(' wins!') , nl , nl , sleep(1) , fail) ; true))).
 
 playFirstPiece :- assert(halfPiece(9, 9, 1, 7, e)), assert(halfPiece(9, 10, 1, 7, w)), retract(piece(7, 7, 1, 0)) , assert(piece(7, 7, 1, 1)).
 
