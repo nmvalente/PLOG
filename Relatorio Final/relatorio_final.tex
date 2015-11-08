@@ -109,7 +109,7 @@ A implementação permite ao utilizador escolher entre 3 tipos de jogo:
 	\item Computador contra Computador.
 \end{itemize}
 
-Para cada jogador Computador, o utilizador pode escolher entre os níveis de inteligência fácil e difícil. Além disso, é possível escolher entre começar um novo jogo ou carregar um jogo previamente salvado.
+Para cada jogador do tipo computador, o utilizador pode escolher entre os níveis de inteligência fácil e difícil. Além disso, é possível escolher entre começar um novo jogo ou carregar um jogo previamente salvado.
 
 Para implementação do jogo, recorremos sobretudo à base de dados do Prolog, procurando assim uma implementação tão eficiente quanto possível. Isso também permitiu que o processo de salvar e carregar um jogo seja bastante simples.
 
@@ -548,7 +548,7 @@ checkGameOver :-                                                /* the name is m
 
 \subsection{Jogada do Computador} 
 
-A jogada do computador é feita consoante o nível de inteligência. Isto é verificado durante a vez do jogador, dado o seu tipo. De facto, em caso de jogador humano (tipo 1), o motor de jogo invoca os predicados que pedem ao utilizador para indicar a jogada e que a executam; em caso de jogador computador fácil, é invocado o predicado \verb|playRandom|, que faz uma sequência de jogadas aleatórias; em caso de jogador computador difícil, é invocado o predicado \verb|playBest|, que faz uma sequência de jogadas em modo ganancioso, isto é, escolhendo sempre uma das que lhe parecem melhores. A definição destes predicados é a seguinte:
+A jogada do computador é feita consoante o nível de inteligência. Isto é verificado durante a vez do jogador, dado o seu tipo. De facto, em caso de jogador humano (tipo 1), o motor de jogo invoca os predicados que pedem ao utilizador para indicar a jogada e que a executam; em caso de jogador do tipo computador fácil, é invocado o predicado \verb|playRandom|, que faz uma sequência de jogadas aleatórias; em caso de jogador do tipo computador difícil, é invocado o predicado \verb|playBest|, que faz uma sequência de jogadas em modo ganancioso, isto é, escolhendo sempre uma das que lhe parecem melhores. A definição destes predicados é a seguinte:
 
 \begin{lstlisting}
 /* predicate used play a random climb movement */
