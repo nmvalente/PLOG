@@ -1,5 +1,13 @@
 /* -*- Mode:Prolog; coding:utf-8; -*- */
 
+/*************/
+/* libraries */
+/*************/
+
+:-consult(display).
+:-consult(utils).
+
+
 /*********************/
 /* distribute pieces */
 /*********************/
@@ -9,7 +17,6 @@
 /* each piece has 2 numbers, 
    the player it belongs to (1 or 2) 
    and a toggle that tells if it has been played (0 if no, 1 if yes) */
-
 
 /* random distribution of game pieces among players */
 distributePieces(N1, N2, NI1, NI2) :- 
@@ -85,6 +92,22 @@ getOtherHalf(X1, Y1, e, X2, Y2, w) :- X2 is X1 , Y2 is Y1 + 1.
 getOtherHalf(X1, Y1, s, X2, Y2, n) :- X2 is X1 + 1, Y2 is Y1. 
 getOtherHalf(X1, Y1, w, X2, Y2, e) :- X2 is X1 , Y2 is Y1 - 1.
 
+:- dynamic lastPlay/4.
+/* lastPlay(Number1, Number2, Order, Player). */
+/* each lastPlay has the numbers of a piece played in the last player's turn, 
+   the order it was played in and the player's number */
+
+/* predicate used to get a players turn piece order */
+getLastPlayOrder(I, 0) :- not(lastPlay(_, _, _, I)).    /* if there is no lastPlay from that player */
+getLastPlayOrder(I, O) :-                               /* otherwise, the order is O if */
+        lastPlay(_, _, O, I) ,                          /* there is a lastPlay of order O from that player */
+        O1 is O + 1 , 
+        not(lastPlay(_, _, O1, I)).                     /* and there is no lastPlay of order O + 1 from that player */
+
+retractLastPlay(I) :- retractLastPlay(I, 1).
+retractLastPlay(I, O) :- retract(lastPlay(_, _, O, I)) -> (O1 is O + 1 , retractLastPlay(I, O1)) ; !.
+        
+
 :- dynamic playPiece/6.
 /* playPiece(Number1, Number2, Player, Line, Column, Cardinal). */
 /* to play a piece we need its numbers, the player holding that piece 
@@ -97,7 +120,10 @@ playPiece(N1, N2, I, X1, Y1, C1, L) :-                          /* L is output *
          assert(halfPiece(X1, Y1, L1, N1, C1)) ,                /* create first halfPiece */
          assert(halfPiece(X2, Y2, L1, N2, C2)) ,                /* create second halfPiece */
          retract(piece(N1, N2, I, 0)) ,                         /* remove piece from player's hand */
-         assert(piece(N1, N2, I, 1))) ;                         /* place piece back but marked as played */
+         assert(piece(N1, N2, I, 1)) ,                          /* place piece back but marked as played */
+         getLastPlayOrder(I, O) ,                               /* determine the order of play of the last piece */
+         O1 is O + 1 ,                                          /* compute order of play of this piece */
+         assert(lastPlay(N1, N2, O1, I))) ;                     /* add piece as played in the last turn by this player */
         fail.                                                   /* if checkPlay fails, fail and do nothing */
 
 /* predicate used to check if a play is valid */
@@ -242,7 +268,8 @@ playFirstPiece :-                                               /* the first pie
         assert(halfPiece(9, 9, 1, 7, e)),                       
         assert(halfPiece(9, 10, 1, 7, w)), 
         retract(piece(7, 7, 1, 0)) , 
-        assert(piece(7, 7, 1, 1)).
+        assert(piece(7, 7, 1, 1)) , 
+        assert(lastPlay(7, 7, 1, 1)).
 
 /* predicate used to play the game */
 playGame :-                             
@@ -257,16 +284,17 @@ playTurn :-                                                     /* when the play
         (turn(I) ,                                              /* check whose turn it is */
          player(I, _, T) ,                                      /* obtain the type of player whose turn it is */
          (T == 1 ->                                             /* if player is human */
-          (printGame(I) ,                                       /* print board and pieces */
+          (I1 is 3 - I ,
+           printGame(I, I1) ,                                   /* print board and pieces */
            getMove(I, N1, N2, X1, Y1, C1) ,                     /* ask the player for the next move */
            (playPiece(N1, N2, I, X1, Y1, C1, L) ->              /* try to play the piece */
             (nextPlayer(I, L) ,                                 /* determine who is the next player (this player's turn may not be over) */
              playTurn) ;                                        /* recursively resume playing with whomever is next */
-            (write('Invalid movement.') , sleep(1) ,            /* if the move is not valid, say so */
+            (write('Invalid movement.') , getNewLine ,          /* if the move is not valid, say so */
              playTurn))) ;                                      /* and recursively resume with the same player */
           (T == 2 ->                                            /* if the player is the computer on easy mode */
            (I1 is 3 - I ,                                       /* obtain the number of the other player */
-            printGame(I1) , nl ,                                /* and print their board and pieces */
+            printGame(I1, I1) , nl ,                            /* and print their board and pieces */
             player(I1, _, T1) ,                                 /* compute also their type */
             (T1 > 1 ->                                          /* if they are not human, then the game is computer vs computer */
              getNewLine ;                                       /* wait for the person running the game to press enter */
@@ -274,7 +302,7 @@ playTurn :-                                                     /* when the play
             playRandom(I) ,                                     /* in any case, compute a sequence of random computer movements */
             changeTurn(I) , playTurn) ;                         /* change player turn and resume playing recursively */
            (I1 is 3 - I ,                                       /* if the computer is on hard mode, obtain the number of the other player */                           
-            printGame(I1) , nl ,                                /* and print their board and pieces */                                
+            printGame(I1, I1) , nl ,                            /* and print their board and pieces */                                
             player(I1, _, T1) ,                                 /* compute also their type */                                         
             (T1 > 1 ->                                          /* if they are not human, then the game is computer vs computer */    
              getNewLine ;                                       /* wait for the person running the game to press enter */             
@@ -354,7 +382,8 @@ getC1(C1) :-
 changeTurn(I) :- 
         I1 is 3 - I ,                                           /* if the current player is I, the next is 3 - I */
         retract(turn(I)) ,                                      /* player I is no longer playing */
-        assert(turn(I1)).                                       /* now it's player's 3 - I turn*/
+        assert(turn(I1)) ,                                      /* now it's player's 3 - I turn */
+        retractLastPlay(I1).                                    /* clear the new player's last turn */
 
 /* predicate used to check if the turn of a human player has ended */
 nextPlayer(I, L) :- 

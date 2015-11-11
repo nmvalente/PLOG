@@ -5,11 +5,38 @@
 /***************/
 
 /* predicate used to print the game board */
+printBoard(I) :- 
+        nl , printNumbers ,                             /* print the numbers on top of the board */
+        write('         ') , printPlayerName(I) , nl ,     /* print last player name */ 
+        printGridTop , nl ,                             /* print the grid top */
+        printRows(I, 1) ,                               /* print the board rows */
+        printNumbers , nl , nl , !.                     /* print the bottom numbers */
+
+/* predicate used to print the game board */
 printBoard :- 
         nl , printNumbers , nl ,                        /* print the numbers on top of the board */
         printGridTop , nl ,                             /* print the grid top */
         printRows(1) ,                                  /* print the board rows */
         printNumbers , nl , nl , !.                     /* print the bottom numbers */
+
+/* predicate used to print the rows of the board */
+printRows(_, 19) :- !.                                  /* stop after row 18 */
+printRows(I, X) :-                                 
+        printLeftNumbers(X) ,                           /* print number on the left of the row */
+        printCells(X, 1) ,                              /* print row cells */
+        printRightNumbers(X) ,                          /* print numbers on the right of the row */
+        (even(X) -> 
+         O is div(X, 2) ; 
+         (Y is X + 1 ,
+          O is div(Y, 2))) ,
+        (even(X) ->                                     /* if the row number is even */
+          printLastPlayNumbers(I, O) ; !) ,             /* print lastPlay piece numbers */
+        nl , printGrid(X) ,                             /* print grid line */
+        (even(X) ->                                     /* if the row number is even */
+         printLastPlayBottom(I, O) ;                    /* print lastPlay piece bottom */
+         printLastPlayTop(I, O)) ,                      /* else print lastPlay piece top */
+        X1 is X + 1 , nl ,                              /* move on to next row */
+        printRows(I, X1).                                  /* calling the function recursively */
 
 /* predicate used to print the rows of the board */
 printRows(19) :- !.                                     /* stop after row 18 */
@@ -50,15 +77,15 @@ printCardinal(w) :- write('←').
 
 /* predicate used to print the numbers on top of the board */
 printNumbers :- 
-        write('                  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18').
+        write('            1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18').
 
 /* predicate used to print the numbers on the left of the board */
 printLeftNumbers(X) :- 
         ((X < 10,                                       /* for numbers before 10, there is one extra space */
-          write('               ') , 
+          write('         ') , 
           print(X) , 
           write('│')) ;                                 /* also print the board grid divider */
-         (write('              ') , 
+         (write('        ') , 
           print(X) , 
           write('│'))).
 
@@ -70,12 +97,32 @@ printRightNumbers(X) :-
          (print(X))).
 
 /* predicate used to print the top of the board grid */
-printGridTop :- write('                ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
+printGridTop :- write('          ┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐').
 
 /* predicate used to print the board grid */
 printGrid(X) :-((X < 18 ,                               /* the last row is different */
-                write('                ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤')) ;
-                write('                └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')).
+                write('          ├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤')) ;
+                write('          └───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘')).
+
+
+/*******************/
+/* print last play */
+/*******************/
+
+printLastPlayTop(I, O) :- 
+        lastPlay(_, _, O, I) -> write('       ┌───┬───┐') ; !.
+        
+
+printLastPlayBottom(I, O) :- 
+        lastPlay(_, _, O, I) -> write('       └───┴───┘') ; !.
+
+printLastPlayNumbers(I, O) :- 
+        lastPlay(N1, N2, O, I) -> 
+        (write('     │ ') ,                             /* print left border */
+         print(N1),                                     /* print left number */
+         write(' │ ') ,                                 /* print center divider */
+         print(N2) ,                                    /* print right number */
+         write(' │')) ; !.                              /* print right border */
 
 
 /****************/
@@ -174,12 +221,12 @@ printPieceBottom(P) :-                                  /* very similar to the p
 /**************/
 
 /* predicate used to print the current board and player pieces */
-printGame(I) :- 
-        cls , printBoard , printPlayer(I).
+printGame(I1, I2) :- 
+        cls , printBoard(I2) , printPlayer(I1).
 
 /* predicate used to print the board and the result at the end of the game */
 printGameOver(I) :- 
-        cls , printBoard , 
+        cls , printBoard(I) , 
         write('Game Over: ') , player(I, S, _) , print(S) , write(' wins!') , 
         nl , nl , sleep(1).
 
