@@ -28,30 +28,31 @@ puzzleInitialization(Puzzle, LMinus, CMinus, LPlus, CPlus):-getPuzzle(Puzzle),
 
 printMagnets(Puzzle, _, _, _, _, Dim):-puzzleInitialization(Puzzle, _, _, _, _), display(Puzzle, Dim, 0 , 0).
 
-printVerticalLines(0):-!.
-printVerticalLines(D):-write('│'), C is D-1, printVerticalLines(C).
+printVerticalLines(-1):-!.
+printVerticalLines(D):-write('│  '), C is D-1, printVerticalLines(C).
+printBottomLine(0):-!.
+printBottomLine(D,C):- (C == D -> write('└') ; (write('───'), C1 is C-1, printBottomLine(D,C1))).
 
-display([],_,_,_).                                                                                                                                   
-display([Elem|Rest], Dim, C , L):-((C < Dim , C > 0)-> write('─┬─'), C1 is C + 1, display([Elem|Rest],Dim, C1, L));
-                                  (C == 0 -> write('┌─')). 
-                 
-        
+                           
+display([],_,_,_).                
+                                                                                                                   
+display([Elem|Rest], Dim, C , L):- (L < Dim -> 
+        ((C == 0, L == 0 -> (write('┌─'), C1 is C+1, display([Elem|Rest],Dim, C1, L));
+          ((C == 0 , L \= 0 -> (write('├─'), C1 is C+1, display([Elem|Rest],Dim, C1, L));
+            ((C < Dim -> (write('─┬─'), C1 is C + 1, display([Elem|Rest],Dim, C1, L));
+              (write('─┐'), nl, printVerticalLines(Dim),
+              ((C == Dim -> L1 is L + 1, nl, display([Elem|Rest],Dim, 0, L1))   ))))))));
+                                    printBottomLine(Dim, Dim)  ).
+           
+
 print_(Elem):-(Elem == e -> write('┌──'));
               (Elem == w -> write('──┐'));
               (Elem == n -> write('└──'));
               (Elem == s -> write('┌──'));
               (Elem == cross -> write('─┬─')).
 
-%(C == Dim-1 -> write('─┐')),
 %┬
 %┴
-/*
-  ((C == 0) -> (write('┌─'), C1 is C+1, display(Rest, Dim, C1, 0)));               % inicio de linha
-        ((L < Dim) -> (((C < Dim-1) -> (print_(cross), C2 is C+1, display(Rest, Dim, C2, L)));
-                       ((C == Dim-1) -> (print_(cross), write('──┐'), L1 is L+1, display(Rest, Dim, 0, L1)));
-                       ((nl, L1 is L+1, display([Elem|Rest], Dim, 0, L1))))).  
- */
-
 
 opposite(Cardinal, Opos):-(Cardinal == e -> Opos=w);
                           (Cardinal == w -> Opos=e);
