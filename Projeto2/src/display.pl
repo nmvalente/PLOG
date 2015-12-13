@@ -1,66 +1,204 @@
 /* -*- Mode:Prolog; coding:utf-8; -*- */
 
-:- use_module(library(lists)).
+:-consult(utils).
 
-e1Puzzle([e,w,e,w,s,e,w,s,n,e,w,n,e,w,e,w]).
-copye1Puzzle([e,w,e,w,s,e,w,s,n,e,w,n,e,w,e,w]).
+printTopGridRec([_]) :- 
+        write('───┐').
+printTopGridRec([Element|FirstRow]) :-
+        write('───') ,
+        (Element == e ->
+         write('─') ;
+         write('┬')) ,
+        printTopGridRec(FirstRow).
+printTopGrid(FirstRow) :-
+        write('   ┌') ,
+        printTopGridRec(FirstRow).
+
+printBottomGridRec([_]) :- 
+        write('───┘').
+printBottomGridRec([Element|LastRow]) :-
+        write('───') ,
+        (Element == e ->
+         write('─') ;
+         write('┴')) ,
+        printBottomGridRec(LastRow).
+printBottomGrid(LastRow) :-
+        write('   └') ,
+        printBottomGridRec(LastRow).
+
+printMiddleGridRec([TopElement],_) :- 
+        TopElement == s ->
+         write('   │') ;
+         write('───┤').
+printMiddleGridRec([TopElement, NextTopElement|TopRow], [BottomElement|BottomRow]) :-
+        (TopElement == e ->
+         (write('───') ,       
+          (BottomElement == e ->
+           write('─') ;
+           write('┬'))) ;
+         (TopElement == s ->
+          (write('   ') ,
+           (NextTopElement == s ->
+            write('│') ;
+            write('├'))) ;
+          (write('───') ,       
+           BottomElement == e ->
+           write('┴') ;
+           (NextTopElement == s ->
+            write('┤') ;
+            write('┼'))))) ,
+        printMiddleGridRec([NextTopElement|TopRow], BottomRow).
+printMiddleGrid([TopElement|TopRow], BottomRow) :-
+         (TopElement == s ->
+          write('   │') ;
+          write('   ├')) ,
+         printMiddleGridRec([TopElement|TopRow], BottomRow).
+
+printPolesRec([_], [Pole]) :-
+        (Pole == -1 ->
+         write(' - ') ;
+         (Pole == 1 ->
+          write(' + ') ;
+          write(' x '))),
+        write('│ ').
+printPolesRec([Cardinal|Cardinals], [Pole|Poles]) :-
+        (Pole == -1 ->
+         write(' - ') ;
+         (Pole == 1 ->
+          write(' + ') ;
+          write(' x '))) ,
+        (Cardinal == e ->        
+         write(' ') ;
+         write('│')) ,
+        printPolesRec(Cardinals, Poles).
+printPoles(Cardinals, Poles, Rplu, Rminu) :-
+        write(' ') ,
+        print(Rplu) ,
+        write(' │') ,
+        printPolesRec(Cardinals, Poles) ,
+        print(Rminu).
+
+printTopPlusRec([]).
+printTopPlusRec([Element|Cplus]) :-
+       write(' ') ,
+       print(Element) ,
+       write('  ') ,
+       printTopPlusRec(Cplus).
+printTopPlus(Cplus) :-
+        write(' +  ') ,
+        printTopPlusRec(Cplus).  
+
+printBottomMinusRec([]).
+printBottomMinusRec([Element|Cminus]) :-
+       write(' ') ,
+       print(Element) ,
+       write('  ') ,
+       printBottomMinusRec(Cminus).
+printBottomMinus(Cminus) :-
+        write('    ') ,
+        printTopPlusRec(Cminus) ,                   
+        write(' -').
+
+printResultRec([LastCardinals], [LastPoles], [Rplu], [Rminu]) :-
+        printPoles(LastCardinals, LastPoles, Rplu, Rminu) ,
+        nl ,
+        printBottomGrid(LastCardinals).
+printResultRec([ThisCardinals, NextCardinals | RowsPuzzle], [ThisPoles|RowsResult], [Rplu|Rplus], [Rminu|Rminus]) :-
+        printPoles(ThisCardinals, ThisPoles, Rplu, Rminu) ,
+        nl ,
+        printMiddleGrid(ThisCardinals, NextCardinals) ,
+        nl ,
+        printResultRec([NextCardinals | RowsPuzzle], RowsResult, Rplus, Rminus).
+printResult([FirstCardinals|RowsPuzzle], RowsResult, Rplus, Rminus, Cplus, Cminus) :-
+        printTopPlus(Cplus) ,
+        nl ,
+        printTopGrid(FirstCardinals) ,
+        nl ,
+        printResultRec([FirstCardinals|RowsPuzzle], RowsResult, Rplus, Rminus) ,
+        nl ,
+        printBottomMinus(Cminus).
+
+printCellsRec([_]) :-
+        write('   ') ,
+        write('│ ').
+printCellsRec([Cardinal|Cardinals]) :-
+        write('   ') ,
+        (Cardinal == e ->        
+         write(' ') ;
+         write('│')) ,
+        printCellsRec(Cardinals).
+printCells(Cardinals, Rplu, Rminu) :-
+        write(' ') ,
+        print(Rplu) ,
+        write(' │') ,
+        printCellsRec(Cardinals) ,
+        print(Rminu).
+
+printPuzzleRec([LastCardinals], [Rplu], [Rminu]) :-
+        printCells(LastCardinals, Rplu, Rminu) ,
+        nl ,
+        printBottomGrid(LastCardinals).
+printPuzzleRec([ThisCardinals, NextCardinals | RowsPuzzle], [Rplu|Rplus], [Rminu|Rminus]) :-
+        printCells(ThisCardinals, Rplu, Rminu) ,
+        nl ,
+        printMiddleGrid(ThisCardinals, NextCardinals) ,
+        nl ,
+        printPuzzleRec([NextCardinals | RowsPuzzle], Rplus, Rminus).
+printPuzzle([FirstCardinals|RowsPuzzle], Rplus, Rminus, Cplus, Cminus) :-
+        printTopPlus(Cplus) ,
+        nl ,
+        printTopGrid(FirstCardinals) ,
+        nl ,
+        printPuzzleRec([FirstCardinals|RowsPuzzle], Rplus, Rminus) ,
+        nl ,
+        printBottomMinus(Cminus).
 
 
-e1Numbers([1,-1,0,0,1,1,-1,0,-1,1,-1,0,1,-1,0,0]).
-lMinus([1,1,2,1]).
-cMinus([1,2,1,0]).
-lPlus([1,2,1,1]).
-cPlus([3,2,1,0]). 
 
-getPuzzle(Puzzle):-e1Puzzle(Puzzle).
-getLMinus(LMinus):-lMinus(LMinus).
-getCMinus(CMinus):-cMinus(CMinus).
-getLPlus(LPlus):-lPlus(LPlus).
-getCPlus(CPlus):-cPlus(CPlus).
+/************/
+/* examples */
+/************/
 
-puzzleInitialization(Puzzle, LMinus, CMinus, LPlus, CPlus):-getPuzzle(Puzzle),
-                                                            getLMinus(LMinus), 
-                                                            getLPlus(LPlus),
-                                                            getCMinus(CMinus), 
-                                                            getCPlus(CPlus).
+printResultE1 :-
+        e1Puzzle(Puzzle) , 
+        e1Result(Result) ,
+        e1PuzzleSize(PuzzleSize) ,
+        e1Rminus(Rminus) ,
+        e1Rplus(Rplus) ,
+        e1Cminus(Cminus) ,
+        e1Cplus(Cplus) ,
+        unflatten(Puzzle, RowsPuzzle, PuzzleSize) ,                                  
+        unflatten(Result, RowsResult, PuzzleSize) ,
+        printResult(RowsPuzzle, RowsResult, Rplus, Rminus, Cplus, Cminus).
 
-%%printMagnets(Puzzle, LMinus, CMinus, LPlus, CPlus, _):-puzzleInitialization(Puzzle, LMinus, CMinus, LPlus, CPlus).
+printResultE2 :-
+        e2Puzzle(Puzzle) , 
+        e2Result(Result) ,
+        e2PuzzleSize(PuzzleSize) ,
+        e2Rminus(Rminus) ,
+        e2Rplus(Rplus) ,
+        e2Cminus(Cminus) ,
+        e2Cplus(Cplus) ,
+        unflatten(Puzzle, RowsPuzzle, PuzzleSize) ,                                  
+        unflatten(Result, RowsResult, PuzzleSize) ,
+        printResult(RowsPuzzle, RowsResult, Rplus, Rminus, Cplus, Cminus).
 
-printMagnets(Puzzle, _, _, _, _, Dim):-puzzleInitialization(Puzzle, _, _, _, _), display(Puzzle, Dim, 0 , 0).
+printPuzzleE1 :-
+        e1Puzzle(Puzzle) , 
+        e1PuzzleSize(PuzzleSize) ,
+        e1Rminus(Rminus) ,
+        e1Rplus(Rplus) ,
+        e1Cminus(Cminus) ,
+        e1Cplus(Cplus) ,
+        unflatten(Puzzle, RowsPuzzle, PuzzleSize) ,                                  
+        printPuzzle(RowsPuzzle, Rplus, Rminus, Cplus, Cminus).
 
-printVerticalLines(-1):-!.
-printVerticalLines(D):-write('│  '), C is D-1, printVerticalLines(C).
-printBottomLine(0):-!.
-printBottomLine(D,C):- (C == D -> write('└') ; (write('───'), C1 is C-1, printBottomLine(D,C1))).
-
-                           
-display([],_,_,_).                
-                                                                                                                   
-display([Elem|Rest], Dim, C , L):- (L < Dim -> 
-        ((C == 0, L == 0 -> (write('┌─'), C1 is C+1, display([Elem|Rest],Dim, C1, L));
-          ((C == 0 , L \= 0 -> (write('├─'), C1 is C+1, display([Elem|Rest],Dim, C1, L));
-            ((C < Dim -> (write('─┬─'), C1 is C + 1, display([Elem|Rest],Dim, C1, L));
-              (write('─┐'), nl, printVerticalLines(Dim),
-              ((C == Dim -> L1 is L + 1, nl, display([Elem|Rest],Dim, 0, L1))   ))))))));
-                                    printBottomLine(Dim, Dim)  ).
-           
-
-print_(Elem):-(Elem == e -> write('┌──'));
-              (Elem == w -> write('──┐'));
-              (Elem == n -> write('└──'));
-              (Elem == s -> write('┌──'));
-              (Elem == cross -> write('─┬─')).
-
-%┬
-%┴
-
-opposite(Cardinal, Opos):-(Cardinal == e -> Opos=w);
-                          (Cardinal == w -> Opos=e);
-                          (Cardinal == n -> Opos=s);
-                          (Cardinal == s -> Opos=n).
-                    
-dictionary(Attr, Code):-(Attr == + -> Code == 1);
-                        (Attr == - -> Code == -1);
-                        (Attr == x -> Code == 0).                     
-                                             
-checkAdjacentPiece(MyCardinal, List):- opposite(MyCardinal,Opos), nth1(1,List,Opos). 
+printPuzzleE2 :-
+        e2Puzzle(Puzzle) , 
+        e2PuzzleSize(PuzzleSize) ,
+        e2Rminus(Rminus) ,
+        e2Rplus(Rplus) ,
+        e2Cminus(Cminus) ,
+        e2Cplus(Cplus) ,
+        unflatten(Puzzle, RowsPuzzle, PuzzleSize) ,                                  
+        printPuzzle(RowsPuzzle, Rplus, Rminus, Cplus, Cminus).
