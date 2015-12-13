@@ -20,7 +20,6 @@
     stringstyle=\color{red}\ttfamily,
     commentstyle=\color{green}\ttfamily,
 	identifierstyle=\color{darkgray}\ttfamily,
-    morecomment=[l][\color{magenta}]{\#},
 	tabsize=1,
     breaklines=true,
     extendedchars=true,
@@ -222,10 +221,27 @@ Even tough our tests where limited, the results seem to point to exponential com
 
 Depending on the puzzle, our solver can reach a solution quite fast, even for larger puzzles, but the fact that the time varies so much makes it somewhat unreliable. However, for the casual user, with puzzles of size up to 10, the application should have no problem in computing the solution in a reasonable amount of time. At sizes 14 and above its a trial and error procedure, some times quite fast and other times excruciatingly slow.
 
+
 \appendix
 \section{Source Code}
+
+\subsection{File magnets.pl}
+\lstinputlisting{../src/magnets.pl}
+
 \subsection{File display.pl}
-\lstinputlisting{display.pl}
+\lstinputlisting{../src/display.pl}
+
+\subsection{File solver.pl}
+\lstinputlisting{../src/solver.pl}
+
+\subsection{File generator.pl}
+\lstinputlisting{../src/generator.pl}
+
+\subsection{File stats.pl}
+\lstinputlisting{../src/stats.pl}
+
+\subsection{File utils.pl}
+\lstinputlisting{../src/utils.pl}
 
 
 \begin{thebibliography}{}

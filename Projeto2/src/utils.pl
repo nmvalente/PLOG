@@ -1,3 +1,6 @@
+/* -*- Mode:Prolog; coding:iso-8859-1; -*- */
+
+/* this file contains some useful functions */
 
 :- set_prolog_flag(toplevel_print_options, [quoted(true), portrayed(true), max_depth(0)]).
 :- use_module(library(clpfd)).
@@ -17,22 +20,15 @@ seedRandom :-
 even(N) :- 
         N rem 2 =:= 0.
 
-/* predicate used to remove all characters up to a new line from the input */
+/* removes all characters up to a new line from the input */
 getNewLine :- 
         get_code(T) , (T == 10 -> ! ; getNewLine).
 
-/* predicate used to get a single char from the input */
-/* does not require full dot at the end, 
-   removes all other characters up to a new line,
-   works also if user only presses enter */
+/* gets a single char from the input */
 getChar(C) :- 
         get_char(C) , char_code(C, Co) , (Co == 10 -> ! ; getNewLine).
 
-/* predicate used to get a possible double algarism number from the input */
-/* does not require full dot at the end, 
-   removes all other characters up to a new line,
-   works also if user only presses enter
-   but the number will be -38 */
+/* gets a possible double algarism number from the input */
 getDoubleDigit(D) :- 
         get_code(D1t) , 
         (D1t == 10 -> ! ; 

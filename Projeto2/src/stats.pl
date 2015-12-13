@@ -1,7 +1,11 @@
 /* -*- Mode:Prolog; coding:iso-8859-1; -*- */
 
+/* this file contains some functions used to obtain statistics */
+
 :- consult(generator).
 
+/* generates a puzzle of the required size,
+   registering the time and number of backtracks used */
 generate(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, Time, Backtracks) :-
         fd_statistics(backtracks, BackStart) ,
         statistics(walltime, [Start,_]) ,
@@ -11,6 +15,7 @@ generate(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, Time, Backtracks) :-
         Time is End - Start ,
         Backtracks is BackEnd - BackStart.
 
+/* solves a given puzzle, registering the time and number of backtracks used */
 solve(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, Result, Time, Backtracks, Options) :-
         fd_statistics(backtracks, BackStart) ,
         statistics(walltime, [Start,_]) ,
@@ -20,16 +25,19 @@ solve(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, Result, Time, Backtracks
         Time is End - Start ,
         Backtracks is BackEnd - BackStart.
         
+/* generates and solves a puzzle of the given size, printing the puzzle and the statistics */
 run(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, Result, Options) :-
         generate(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, TimeGen, BackGen) ,
         solve(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, Result, TimeSol, BackSol, Options) , 
         format('Puzzle of size ~d generated in ~3d seconds (~d backtracks) and solved in ~3d seconds (~d backtracks).~n', [PuzzleSize, TimeGen, BackGen, TimeSol, BackSol]).
 
+/* generates and solves a puzzle of the given size, printing the statistics */
 run(PuzzleSize, Options) :-
         generate(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, TimeGen, BackGen) ,
         solve(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, _, TimeSol, BackSol, Options) , 
         format('Puzzle of size ~d generated in ~3d seconds (~d backtracks) and solved in ~3d seconds (~d backtracks).~n', [PuzzleSize, TimeGen, BackGen, TimeSol, BackSol]).
 
+/* generates a puzzle and computes all its solutions, printing the statistics */
 runAll(PuzzleSize, Options) :-
         generate(PuzzleSize, Puzzle, Rminus, Rplus, Cminus, Cplus, TimeGen, _) ,
         statistics(walltime, [Start,_]) ,
@@ -41,6 +49,7 @@ runAll(PuzzleSize, Options) :-
         format('Puzzle of size ~d generated in ~3d seconds, ~d solutions found in ~3d seconds, ', [PuzzleSize, TimeGen, N, TimeSol]) ,
         format('average time per solution is ~3d seconds.~n', [TimeAvg]).
 
+/* generates a given number of puzzles of the given size, computing several statistics */
 runAvg(PuzzleSize, PuzzleNumber, TotalTimeGen, TotalTimeSol, MaxTimeGen, MaxTimeSol, MinTimeGen, MinTimeSol, MaxGen, MaxSol, MinGen, MinSol, Counter, TimeGen, TimeSol, TotalBackGen, TotalBackSol, BackGen, BackSol, Options) :-
         Counter > PuzzleNumber -> 
         (TotalTimeGen = TimeGen ,
@@ -72,6 +81,7 @@ runAvg(PuzzleSize, PuzzleNumber, TotalTimeGen, TotalTimeSol, MaxTimeGen, MaxTime
           MinSol1 = MinSol) ,
          runAvg(PuzzleSize, PuzzleNumber, TotalTimeGen, TotalTimeSol, MaxTimeGen, MaxTimeSol, MinTimeGen, MinTimeSol, MaxGen1, MaxSol1, MinGen1, MinSol1, Counter1, TimeGen1, TimeSol1, TotalBackGen, TotalBackSol, BackGen1, BackSol1, Options)).
 
+/* uses the function above to obtain the final statistics */
 run(PuzzleSize, PuzzleNumber, Options, MinGen, AvgGen, MaxGen, BackGen, MinSol, AvgSol, MaxSol, BackSol) :-
         runAvg(PuzzleSize, PuzzleNumber, TotalTimeGen, TotalTimeSol, MaxGen, MaxSol, MinGen, MinSol, 0, 0, 3600000000, 3600000000, 1, 0, 0, TotalBackGen, TotalBackSol, 0, 0, Options) ,
         AvgGen is TotalTimeGen / PuzzleNumber ,
@@ -79,6 +89,7 @@ run(PuzzleSize, PuzzleNumber, Options, MinGen, AvgGen, MaxGen, BackGen, MinSol, 
         BackGen is TotalBackGen / PuzzleNumber ,
         BackSol is TotalBackSol / PuzzleNumber.
 
+/* solver statistis using different sets of labeling options */
 solveAvg(PuzzleSize, PuzzleNumber, Counter ,
          TotalTime_none, MaxTime_none, MinTime_none, Max_none, Min_none, Time_none, TotalBack_none, Back_none,
          TotalTime_ff, MaxTime_ff, MinTime_ff, Max_ff, Min_ff, Time_ff, TotalBack_ff, Back_ff,
@@ -145,6 +156,7 @@ solveAvg(PuzzleSize, PuzzleNumber, Counter ,
          TotalTime_median, MaxTime_median, MinTime_median, Max1_median, Min1_median, Time1_median, TotalBack_median, Back1_median,
          TotalTime_all, MaxTime_all, MinTime_all, Max1_all, Min1_all, Time1_all, TotalBack_all, Back1_all)).
 
+/* uses the function above to obtain the final statistics */
 run(PuzzleSize, PuzzleNumber, 
     Avg_none, Max_none, Min_none, Back_none,
     Avg_ff, Max_ff, Min_ff, Back_ff,
