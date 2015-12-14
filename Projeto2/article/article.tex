@@ -63,7 +63,7 @@
 
 \section{Introduction}
 
-Constraint logic programming is very useful to solve problems in which one wants to determine a set of variables that must satisfy certain rules. In addition to the the logic programming literals, these programs contain constraints such as~$X \neq Y$. The goal of the program is to determine values for all the variables such that all the clauses and constraints are satisfied. Typically, this kind of programming is used to solve search problems, such as paper-and-pencil puzzles or chess puzzles, and optimization problems, such as scheduling, timetabling, resource allocation, planning, production management or circuit check. By using constraint logic programming one can reduce the development time, as well as obtain efficient, simple and easy to maintain solutions.
+Constraint logic programming is very useful to solve problems in which one wants to determine a set of variables that must satisfy certain rules. In addition to the logic programming literals, these programs contain constraints such as~$X \neq Y$. The goal of the program is to determine values for all the variables such that all the clauses and constraints are satisfied. Typically, this kind of programming is used to solve search problems, such as paper-and-pencil puzzles or chess puzzles, and optimization problems, such as scheduling, timetabling, resource allocation, planning, production management or circuit check. By using constraint logic programming one can reduce the development time, as well as obtain efficient, simple and easy to maintain solutions.
 
 To solidify our knowledge of constraint logic programming, we chose to implement the paper-and-pencil puzzle Magnets. In this puzzle, one is given a square grid of dominoes, as well as the number of positive and negative poles for each row and column. Some dominoes are magnetized, having a positive pole and a negative pole, while others are neutral. Also, poles with the same charge repel and are not allowed to touch vertically or horizontally. The objective is identify the positive poles with a $+$ sign, the negative poles with a~$-$ sign and the neutral ones with an~$x$.
 
@@ -158,7 +158,7 @@ After obtaining the grid of dominoes, we fill that grid with the values~$-1$,~$0
 
 \section{Solution Presentation} 
 
-In addition to random puzzle generation and puzzle resolution, we also implemented some Prolog predicates that allow us tu visualize the puzzles and the solutions in text mode. In fact, we have a very small application that asks the user for the size of the puzzle, shows a random puzzle of that size and then, when the user choses to, presents the solution. 
+In addition to random puzzle generation and puzzle resolution, we also implemented some Prolog predicates that allow us to visualize the puzzles and the solutions in text mode. In fact, we have a very small application that asks the user for the size of the puzzle, shows a random puzzle of that size and then, when the user choses to, presents the solution. 
 
 \begin{figure}[htbp]
 \begin{center}
